@@ -2,9 +2,6 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { Header } from './components/Header';
-import Auth from './components/Auth';
-import Onboarding from './components/Onboarding';
-import { supabase } from './services/supabaseClient';
 import { FinancialStats } from './components/FinancialStats';
 import { DashboardWidgets } from './components/DashboardWidgets';
 import { InventoryAlert } from './components/InventoryAlert';
@@ -410,12 +407,6 @@ const INITIAL_CANVAS_SPACES: CanvasSpace[] = [
 
 // --- APP COMPONENT ---
 export default function App() {
-  // Auth states
-  const [user, setUser] = useState<any>(null);
-  const [needsOnboarding, setNeedsOnboarding] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true);
-  
-  // App states
   const [currentView, setCurrentView] = useState<ModuleKey>('dashboard');
   const [enabledModules, setEnabledModules] = useState<ModuleStateMap>(DEFAULT_ENABLED_MODULES);
   const [isModulePanelOpen, setIsModulePanelOpen] = useState(false);
@@ -432,43 +423,6 @@ export default function App() {
   const [vehicles, setVehicles] = useState(INITIAL_VEHICLES);
   const [fuelLogs, setFuelLogs] = useState(INITIAL_FUEL_LOGS);
   const [canvasSpaces, setCanvasSpaces] = useState<CanvasSpace[]>(INITIAL_CANVAS_SPACES);
-
-  // Check auth status on app load
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        setUser(user);
-        
-        if (user) {
-          // Check if user needs onboarding
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('onboarding_completed')
-            .eq('id', user.id)
-            .single();
-          
-          setNeedsOnboarding(!profile?.onboarding_completed);
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-      } finally {
-        setAuthLoading(false);
-      }
-    };
-
-    checkAuth();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user || null);
-      if (!session?.user) {
-        setNeedsOnboarding(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -889,29 +843,6 @@ export default function App() {
     }
   };
 
-  // Show loading while checking auth
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show auth screen if not logged in
-  if (!user) {
-    return <Auth onSuccess={() => setAuthLoading(true)} />;
-  }
-
-  // Show onboarding if needed
-  if (needsOnboarding) {
-    return <Onboarding />;
-  }
-
-  // Show main app
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
       <Header 

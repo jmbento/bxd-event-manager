@@ -214,6 +214,16 @@ create table if not exists public.analytics_snapshots (
   taken_at timestamptz not null default timezone('utc', now())
 );
 
+-- User profiles (for onboarding system)
+create table if not exists public.profiles (
+  id uuid primary key references auth.users on delete cascade,
+  org_name text,
+  plan_tier text not null default 'starter',
+  onboarding_completed boolean not null default false,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
 -- Enable Row Level Security
 alter table public.campaigns enable row level security;
 alter table public.campaign_members enable row level security;
@@ -232,6 +242,7 @@ alter table public.fuel_logs enable row level security;
 alter table public.volunteers enable row level security;
 alter table public.module_flags enable row level security;
 alter table public.analytics_snapshots enable row level security;
+alter table public.profiles enable row level security;
 
 -- Helper function
 create or replace function public.is_campaign_member(campaign uuid)
@@ -251,3 +262,23 @@ $$ language plpgsql security definer;
 -- Grant execute permission
 grant execute on function public.is_campaign_member(uuid) to authenticated;
 grant usage on schema public to authenticated, anon;
+
+-- RLS Policies for profiles
+create policy "Users can view own profile" on public.profiles for select using (auth.uid() = id);
+create policy "Users can update own profile" on public.profiles for update using (auth.uid() = id);
+create policy "Users can insert own profile" on public.profiles for insert with check (auth.uid() = id);
+
+-- Function to automatically create profile on signup
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id)
+  values (new.id);
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Trigger to create profile on user signup
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
