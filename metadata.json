@@ -1,0 +1,7 @@
+{
+  "name": "BXD Event Manager",
+  "description": "A comprehensive event management platform focusing on production operations, staff coordination, sustainability tracking, and real-time monitoring.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

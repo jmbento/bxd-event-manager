@@ -1,0 +1,7 @@
+{
+  "name": "BXD POWER EVENT",
+  "description": "Event operations control tower covering financials, logistics, teams, and AI copilots for large-scale productions.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
