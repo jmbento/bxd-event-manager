@@ -433,42 +433,42 @@ export default function App() {
   const [fuelLogs, setFuelLogs] = useState(INITIAL_FUEL_LOGS);
   const [canvasSpaces, setCanvasSpaces] = useState<CanvasSpace[]>(INITIAL_CANVAS_SPACES);
 
-  // Check auth status on app load
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        setUser(user);
-        
-        if (user) {
-          // Check if user needs onboarding
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('onboarding_completed')
-            .eq('id', user.id)
-            .single();
-          
-          setNeedsOnboarding(!profile?.onboarding_completed);
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-      } finally {
-        setAuthLoading(false);
-      }
-    };
+  // TEMPORARY: Auth disabled for demo
+  // useEffect(() => {
+  //   const checkAuth = async () => {
+  //     try {
+  //       const { data: { user } } = await supabase.auth.getUser();
+  //       setUser(user);
+  //       
+  //       if (user) {
+  //         // Check if user needs onboarding
+  //         const { data: profile } = await supabase
+  //           .from('profiles')
+  //           .select('onboarding_completed')
+  //           .eq('id', user.id)
+  //           .single();
+  //         
+  //         setNeedsOnboarding(!profile?.onboarding_completed);
+  //       }
+  //     } catch (error) {
+  //       console.error('Auth check error:', error);
+  //     } finally {
+  //       setAuthLoading(false);
+  //     }
+  //   };
 
-    checkAuth();
+  //   checkAuth();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user || null);
-      if (!session?.user) {
-        setNeedsOnboarding(false);
-      }
-    });
+  //   // Listen for auth changes
+  //   const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+  //     setUser(session?.user || null);
+  //     if (!session?.user) {
+  //       setNeedsOnboarding(false);
+  //     }
+  //   });
 
-    return () => subscription.unsubscribe();
-  }, []);
+  //   return () => subscription.unsubscribe();
+  // }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -889,27 +889,8 @@ export default function App() {
     }
   };
 
-  // Show loading while checking auth
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show auth screen if not logged in
-  if (!user) {
-    return <Auth onSuccess={() => setAuthLoading(true)} />;
-  }
-
-  // Show onboarding if needed
-  if (needsOnboarding) {
-    return <Onboarding />;
-  }
+  // TEMPORARY: Skip auth for demo - always show main app
+  // TODO: Re-enable auth system later
 
   // Show main app
   return (
