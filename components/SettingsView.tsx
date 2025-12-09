@@ -57,7 +57,7 @@ const USER_ROLES: UserRole[] = [
   },
   {
     id: 'gerente',
-    name: 'Gerente de Campanha',
+    name: 'Gerente de Evento',
     permissions: ['agenda', 'crm', 'marketing', 'analytics', 'volunteers', 'polls']
   },
   {
@@ -73,11 +73,11 @@ const USER_ROLES: UserRole[] = [
 ];
 
 const INITIAL_USERS: ManagedUser[] = [
-  { id: 'u1', name: 'João Silva', email: 'joao@campanha.com', role: 'admin', status: 'online' },
-  { id: 'u2', name: 'Maria Santos', email: 'maria@campanha.com', role: 'gerente', status: 'online' },
-  { id: 'u3', name: 'Carlos Souza', email: 'carlos@campanha.com', role: 'coordenador', status: 'offline' },
-  { id: 'u4', name: 'Ana Paula', email: 'ana@campanha.com', role: 'coordenador', status: 'online' },
-  { id: 'u5', name: 'Pedro Lima', email: 'pedro@campanha.com', role: 'voluntario', status: 'offline' },
+  { id: 'u1', name: 'João Silva', email: 'joao@evento.com', role: 'admin', status: 'online' },
+  { id: 'u2', name: 'Maria Santos', email: 'maria@evento.com', role: 'gerente', status: 'online' },
+  { id: 'u3', name: 'Carlos Souza', email: 'carlos@evento.com', role: 'coordenador', status: 'offline' },
+  { id: 'u4', name: 'Ana Paula', email: 'ana@evento.com', role: 'coordenador', status: 'online' },
+  { id: 'u5', name: 'Pedro Lima', email: 'pedro@evento.com', role: 'voluntario', status: 'offline' },
 ];
 
 export const SettingsView: React.FC = () => {
@@ -288,31 +288,32 @@ export const SettingsView: React.FC = () => {
                 <label className="block text-sm font-medium text-slate-700 mb-2">Nome do Evento no App</label>
                 <input
                   type="text"
-                  defaultValue="BXD CAMPANHA"
+                  defaultValue="BXD EVENTO"
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Número do Candidato</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Data do Evento</label>
+                <input
+                  type="date"
+                  defaultValue="2025-12-01"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Cidade</label>
                 <input
                   type="text"
-                  defaultValue="55.123"
+                  defaultValue="São Paulo"
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Partido</label>
-                <input
-                  type="text"
-                  defaultValue="PSD"
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">CNPJ</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">CNPJ da Produtora</label>
                 <input
                   type="text"
                   defaultValue="12.345.678/0001-99"
+                  placeholder="00.000.000/0000-00"
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -332,7 +333,7 @@ export const SettingsView: React.FC = () => {
               <label className="flex items-center justify-between p-4 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
                 <div>
                   <p className="font-medium text-slate-800">Backup Automático</p>
-                  <p className="text-sm text-slate-500">Backup diário dos dados da campanha</p>
+                  <p className="text-sm text-slate-500">Backup diário dos dados do evento</p>
                 </div>
                 <input type="checkbox" defaultChecked className="w-5 h-5 text-blue-600" />
               </label>
@@ -939,7 +940,7 @@ export const SettingsView: React.FC = () => {
                   <Mail className={`w-6 h-6 ${msConnected ? 'text-green-600' : 'text-slate-400'}`} />
                   <h4 className="font-semibold text-slate-800">Outlook</h4>
                 </div>
-                <p className="text-xs text-slate-600">Sincronize emails e contatos da campanha</p>
+                <p className="text-xs text-slate-600">Sincronize emails e contatos do evento</p>
               </div>
               <div className={`p-4 border rounded-lg ${msConnected ? 'border-green-300 bg-green-50' : 'border-slate-200'}`}>
                 <div className="flex items-center gap-3 mb-2">
@@ -1119,7 +1120,7 @@ export const SettingsView: React.FC = () => {
                 <CheckCircle2 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-slate-800">Contacts.ReadWrite</p>
-                  <p className="text-xs text-slate-600">Gerenciar contatos da campanha</p>
+                  <p className="text-xs text-slate-600">Gerenciar contatos do evento</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -1251,7 +1252,7 @@ export const SettingsView: React.FC = () => {
                   <Mail className={`w-6 h-6 ${googleConnected ? 'text-green-600' : 'text-slate-400'}`} />
                   <h4 className="font-semibold text-slate-800">Gmail</h4>
                 </div>
-                <p className="text-xs text-slate-600">Envie e receba emails da campanha</p>
+                <p className="text-xs text-slate-600">Envie e receba emails do evento</p>
               </div>
               <div className={`p-4 border rounded-lg ${googleConnected ? 'border-green-300 bg-green-50' : 'border-slate-200'}`}>
                 <div className="flex items-center gap-3 mb-2">
@@ -1517,7 +1518,7 @@ export const SettingsView: React.FC = () => {
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-bold text-red-600 flex-shrink-0">7.</span>
-                <span>Configure a <strong>OAuth consent screen</strong> com nome e logo da campanha</span>
+                <span>Configure a <strong>OAuth consent screen</strong> com nome e logo do evento</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-bold text-red-600 flex-shrink-0">8.</span>
@@ -1552,7 +1553,7 @@ export const SettingsView: React.FC = () => {
                 </h4>
                 <ul className="text-sm text-slate-600 space-y-1">
                   <li>• Backup automático de documentos</li>
-                  <li>• Compartilhar materiais de campanha</li>
+                  <li>• Compartilhar materiais de evento</li>
                   <li>• Armazenar fotos de eventos</li>
                 </ul>
               </div>

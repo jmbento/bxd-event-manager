@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, ChatSession } from '../types';
 import { askLegalAdvisor } from '../services/geminiService';
@@ -8,11 +9,11 @@ export const LegalAdvisor: React.FC = () => {
   const [sessions, setSessions] = useState<ChatSession[]>([
     {
       id: 'session-1',
-      title: 'Alvará para evento com pirotecnia',
+      title: 'Pode usar Trio Elétrico?',
       lastModified: new Date(Date.now() - 86400000), // Yesterday
       messages: [
-         { id: '1', role: 'user', text: 'Preciso de alvará especial para usar fogos de artifício no encerramento do evento?', timestamp: new Date(Date.now() - 86400000) },
-         { id: '2', role: 'assistant', text: 'Sim, para uso de pirotecnia em eventos é necessária autorização do Corpo de Bombeiros e, em alguns municípios, também da Polícia Civil. O responsável técnico deve ter certificação em manuseio de fogos. Recomendo também verificar a lei orgânica municipal sobre horário permitido e distância mínima de hospitais e áreas residenciais.', timestamp: new Date(Date.now() - 86400000) }
+         { id: '1', role: 'user', text: 'Posso usar trio elétrico em carreata?', timestamp: new Date(Date.now() - 86400000) },
+         { id: '2', role: 'assistant', text: 'O uso de trios elétricos em campanhas eleitorais é proibido, exceto para a sonorização de comícios (art. 39, § 10, da Lei nº 9.504/1997). Em carreatas, caminhadas e passeatas, é permitido apenas o uso de carros de som ou minitrios.', timestamp: new Date(Date.now() - 86400000) }
       ]
     }
   ]);
@@ -169,8 +170,8 @@ export const LegalAdvisor: React.FC = () => {
              <div className="flex items-center gap-3 text-xs text-slate-500">
                  <div className="p-2 bg-slate-200 rounded-full"><User className="w-4 h-4" /></div>
                  <div>
-                     <p className="font-bold text-slate-700">Produtor</p>
-                     <p>Organizador do Evento</p>
+                     <p className="font-bold text-slate-700">Candidato</p>
+                     <p>Candidato a Prefeito</p>
                  </div>
              </div>
          </div>
@@ -192,7 +193,7 @@ export const LegalAdvisor: React.FC = () => {
                         <h2 className="font-bold text-slate-800 text-sm md:text-base">Consultor Jurídico IA</h2>
                         <div className="flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <p className="text-xs text-slate-500">Legislação de Eventos Online</p>
+                            <p className="text-xs text-slate-500">Resolução 23.610/TSE Online</p>
                         </div>
                     </div>
                 </div>
@@ -211,22 +212,22 @@ export const LegalAdvisor: React.FC = () => {
                     <div className="bg-white p-4 rounded-full shadow-sm mb-4">
                         <Scale className="w-12 h-12 text-blue-600" />
                     </div>
-                    <h3 className="text-xl font-bold text-slate-800 mb-2">Como posso ajudar seu evento hoje?</h3>
+                    <h3 className="text-xl font-bold text-slate-800 mb-2">Como posso ajudar sua campanha hoje?</h3>
                     <p className="text-slate-500 text-sm max-w-md mb-8">
-                        Tire dúvidas sobre contratos, alvarás, direitos autorais, ECAD e o que é exigido pela legislação de eventos.
+                        Tire dúvidas sobre propaganda, prestação de contas, prazos e o que é permitido pela legislação eleitoral.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-lg">
-                        <button onClick={() => setInput("Preciso pagar ECAD para tocar música no evento?")} className="p-3 bg-white border border-slate-200 rounded-xl text-xs text-left hover:border-blue-400 hover:shadow-md transition-all text-slate-600">
-                            🎵 "Preciso pagar ECAD para tocar música no evento?"
+                        <button onClick={() => setInput("Posso distribuir brindes como chaveiros?")} className="p-3 bg-white border border-slate-200 rounded-xl text-xs text-left hover:border-blue-400 hover:shadow-md transition-all text-slate-600">
+                            🎁 "Posso distribuir brindes como chaveiros?"
                         </button>
-                        <button onClick={() => setInput("Qual seguro é obrigatório para eventos?")} className="p-3 bg-white border border-slate-200 rounded-xl text-xs text-left hover:border-blue-400 hover:shadow-md transition-all text-slate-600">
-                            🛡️ "Qual seguro é obrigatório para eventos?"
+                        <button onClick={() => setInput("Qual o limite de tamanho para bandeiras?")} className="p-3 bg-white border border-slate-200 rounded-xl text-xs text-left hover:border-blue-400 hover:shadow-md transition-all text-slate-600">
+                            🚩 "Qual o limite de tamanho para bandeiras?"
                         </button>
-                        <button onClick={() => setInput("Como funciona a Lei Rouanet para eventos?")} className="p-3 bg-white border border-slate-200 rounded-xl text-xs text-left hover:border-blue-400 hover:shadow-md transition-all text-slate-600">
-                            📋 "Como funciona a Lei Rouanet para eventos?"
+                        <button onClick={() => setInput("Regras para impulsionamento no Facebook")} className="p-3 bg-white border border-slate-200 rounded-xl text-xs text-left hover:border-blue-400 hover:shadow-md transition-all text-slate-600">
+                            💻 "Regras para impulsionamento no Facebook"
                         </button>
-                        <button onClick={() => setInput("Regras de acessibilidade para eventos")} className="p-3 bg-white border border-slate-200 rounded-xl text-xs text-left hover:border-blue-400 hover:shadow-md transition-all text-slate-600">
-                            ♿ "Regras de acessibilidade para eventos"
+                        <button onClick={() => setInput("Pode usar carro de som perto de hospital?")} className="p-3 bg-white border border-slate-200 rounded-xl text-xs text-left hover:border-blue-400 hover:shadow-md transition-all text-slate-600">
+                            🔊 "Pode usar carro de som perto de hospital?"
                         </button>
                     </div>
                 </div>

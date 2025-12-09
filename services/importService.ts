@@ -67,8 +67,8 @@ const DEFAULT_SOURCES = [
   'Cartão',
   'PIX',
   'Transferência',
-  'Doação',
-  'Financiamento',
+  'Patrocínio',
+  'Incentivo',
   'Outros'
 ];
 
@@ -137,7 +137,7 @@ const parseAmount = (amountStr: string): number => {
 
 // Detecta se é entrada ou saída baseado no valor ou contexto
 const detectTransactionType = (amount: number, description: string, category: string): 'income' | 'expense' => {
-  const incomeKeywords = ['receita', 'doação', 'contribuição', 'entrada', 'recebimento'];
+  const incomeKeywords = ['receita', 'patrocínio', 'ingresso', 'entrada', 'recebimento', 'incentivo'];
   const text = (description + ' ' + category).toLowerCase();
   
   if (incomeKeywords.some(keyword => text.includes(keyword))) {

@@ -1,29 +1,29 @@
 import { BudgetItem, BudgetSummary, Transaction } from '../types';
 
-// Categorias padrão para orçamento de campanha
+// Categorias padrão para orçamento de eventos
 export const BUDGET_CATEGORIES = {
-  marketing: 'Marketing e Publicidade',
-  logistics: 'Logística e Eventos',
-  personnel: 'Pessoal e Colaboradores',
-  materials: 'Materiais de Campanha',
-  transport: 'Transporte e Combustível',
-  communication: 'Comunicação e Telefone',
+  marketing: 'Marketing e Divulgação',
+  logistics: 'Logística e Infraestrutura',
+  personnel: 'Equipe e Colaboradores',
+  materials: 'Materiais e Cenografia',
+  transport: 'Transporte e Deslocamento',
+  communication: 'Comunicação e Mídia',
   legal: 'Jurídico e Contabilidade',
-  technology: 'Tecnologia e Software',
+  technology: 'Tecnologia e Equipamentos',
   administrative: 'Administrativo',
   contingency: 'Reserva de Contingência'
 };
 
 export const BUDGET_SUBCATEGORIES = {
-  marketing: ['Redes Sociais', 'Material Gráfico', 'Rádio/TV', 'Outdoor', 'Impulsionamento'],
-  logistics: ['Eventos', 'Aluguel de Espaço', 'Sonorização', 'Decoração', 'Catering'],
-  personnel: ['Coordenadores', 'Cabos Eleitorais', 'Assessoria', 'Segurança'],
-  materials: ['Santinhos', 'Adesivos', 'Camisetas', 'Bandeiras', 'Broches'],
-  transport: ['Combustível', 'Manutenção', 'Aluguel de Veículos', 'Pedágio'],
-  communication: ['Telefone', 'Internet', 'Aplicativos', 'WhatsApp Business'],
-  legal: ['Advogado', 'Contador', 'Documentação', 'Taxas'],
-  technology: ['Site', 'App', 'Sistemas', 'Hospedagem'],
-  administrative: ['Material de Escritório', 'Aluguel', 'Água/Luz', 'Limpeza'],
+  marketing: ['Redes Sociais', 'Material Gráfico', 'Assessoria de Imprensa', 'Mídia Online', 'Impulsionamento'],
+  logistics: ['Montagem de Palco', 'Aluguel de Espaço', 'Sonorização', 'Iluminação', 'Catering'],
+  personnel: ['Produtores', 'Técnicos', 'Seguranças', 'Recepcionistas', 'Artistas'],
+  materials: ['Cenografia', 'Decoração', 'Camisetas', 'Brindes', 'Sinalização'],
+  transport: ['Combustível', 'Frete', 'Transfer VIP', 'Hospedagem'],
+  communication: ['Credenciamento', 'App do Evento', 'Transmissão', 'Fotografia'],
+  legal: ['Advogado', 'Contador', 'ECAD', 'Alvarás', 'Seguros'],
+  technology: ['Site', 'App', 'Ingressos Online', 'Wi-Fi'],
+  administrative: ['Material de Escritório', 'Aluguel', 'Utilities', 'Limpeza'],
   contingency: ['Emergências', 'Imprevistos', 'Oportunidades']
 };
 
@@ -69,8 +69,8 @@ class BudgetService {
       {
         id: 'budget-2',
         category: 'materials',
-        subcategory: 'Santinhos',
-        description: 'Impressão de 50.000 santinhos',
+        subcategory: 'Material Promocional',
+        description: 'Impressão de flyers e banners',
         plannedAmount: 8000,
         actualAmount: 0,
         remainingAmount: 8000,
@@ -81,8 +81,8 @@ class BudgetService {
       {
         id: 'budget-3',
         category: 'logistics',
-        subcategory: 'Eventos',
-        description: 'Comício central - som e estrutura',
+        subcategory: 'Infraestrutura',
+        description: 'Palco principal - som e estrutura',
         plannedAmount: 12000,
         actualAmount: 0,
         remainingAmount: 12000,

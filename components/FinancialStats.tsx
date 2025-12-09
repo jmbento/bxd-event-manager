@@ -7,7 +7,7 @@ interface Props {
 }
 
 export const FinancialStats: React.FC<Props> = ({ data }) => {
-  const percentUsed = (data.totalSpent / data.spendingLimit) * 100;
+  const percentUsed = data.spendingLimit > 0 ? (data.totalSpent / data.spendingLimit) * 100 : 0;
   const isCritical = percentUsed > 90;
 
   const formatCurrency = (val: number) => 

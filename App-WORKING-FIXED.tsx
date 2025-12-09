@@ -5,58 +5,81 @@ import { FinancialStats } from './components/FinancialStats';
 import { MODULE_DEFINITIONS, DEFAULT_ENABLED_MODULES } from './config/moduleConfig';
 import type { EventProfile, FinancialKPI, Transaction } from './types';
 
-// Lazy load dos módulos pesados - usando default export wrapper
-const FinanceViewSimple = lazy(() => import('./components/FinanceViewSimple').then(m => ({ default: m.FinanceViewSimple })));
-const CRMView = lazy(() => import('./components/CRMView').then(m => ({ default: m.CRMView })));
-const MarketingBoard = lazy(() => import('./components/MarketingBoard').then(m => ({ default: m.MarketingBoard })));
-const AgendaView = lazy(() => import('./components/AgendaView').then(m => ({ default: m.AgendaView })));
-const AnalyticsView = lazy(() => import('./components/AnalyticsView').then(m => ({ default: m.AnalyticsView })));
-const TeamView = lazy(() => import('./components/TeamView').then(m => ({ default: m.TeamView })));
-const EventPlanner3D = lazy(() => import('./components/EventPlanner3D').then(m => ({ default: m.EventPlanner3D })));
-const MarketingAdvancedView = lazy(() => import('./components/MarketingAdvancedView').then(m => ({ default: m.MarketingAdvancedView })));
-const AdvancedFinanceView = lazy(() => import('./components/AdvancedFinanceView').then(m => ({ default: m.AdvancedFinanceView })));
-const AccountingAdvisor = lazy(() => import('./components/AccountingAdvisor').then(m => ({ default: m.AccountingAdvisor })));
-const PollsView = lazy(() => import('./components/PollsView').then(m => ({ default: m.PollsView })));
-const VolunteersView = lazy(() => import('./components/VolunteersView').then(m => ({ default: m.VolunteersView })));
-const LegalAdvisor = lazy(() => import('./components/LegalAdvisor').then(m => ({ default: m.LegalAdvisor })));
-const ComplianceView = lazy(() => import('./components/ComplianceView').then(m => ({ default: m.ComplianceView })));
-const StaffManagerView = lazy(() => import('./components/StaffManagerView').then(m => ({ default: m.StaffManagerView })));
-const EcoGestaoView = lazy(() => import('./components/EcoGestaoView').then(m => ({ default: m.EcoGestaoView })));
-const SettingsView = lazy(() => import('./components/SettingsView').then(m => ({ default: m.SettingsView })));
-const EventProfileView = lazy(() => import('./components/EventProfileView').then(m => ({ default: m.EventProfileView })));
-const HelpView = lazy(() => import('./components/HelpView').then(m => ({ default: m.HelpView })));
+// Lazy load dos módulos pesados
+const FinanceViewSimple = lazy(() => import('./components/FinanceViewSimple').then(m => m));
+const CRMView = lazy(() => import('./components/CRMView').then(m => m));
+const MarketingBoard = lazy(() => import('./components/MarketingBoard').then(m => m));
+const AgendaView = lazy(() => import('./components/AgendaView').then(m => m));
+const AnalyticsView = lazy(() => import('./components/AnalyticsView').then(m => m));
+const TeamView = lazy(() => import('./components/TeamView').then(m => m));
+const EventPlanner3D = lazy(() => import('./components/EventPlanner3D').then(m => m));
+const MarketingAdvancedView = lazy(() => import('./components/MarketingAdvancedView').then(m => m));
+const AdvancedFinanceView = lazy(() => import('./components/AdvancedFinanceView').then(m => m));
+const AccountingAdvisor = lazy(() => import('./components/AccountingAdvisor').then(m => m));
+const PollsView = lazy(() => import('./components/PollsView').then(m => m));
+const VolunteersView = lazy(() => import('./components/VolunteersView').then(m => m));
+const LegalAdvisor = lazy(() => import('./components/LegalAdvisor').then(m => m));
+const ComplianceView = lazy(() => import('./components/ComplianceView').then(m => m));
+const StaffManagerView = lazy(() => import('./components/StaffManagerView').then(m => m));
+const EcoGestaoView = lazy(() => import('./components/EcoGestaoView').then(m => m));
+const SettingsView = lazy(() => import('./components/SettingsView').then(m => m));
+const EventProfileView = lazy(() => import('./components/EventProfileView').then(m => m));
 
 export default function App() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [isModulePanelOpen, setIsModulePanelOpen] = useState(false);
 
   const profile: EventProfile = {
-    eventName: '',
-    edition: '',
-    startDate: '',
-    endDate: '',
-    location: '',
-    expectedAudience: 0,
-    description: '',
+    eventName: 'Meu Evento',
+    edition: '2025',
+    startDate: '2025-12-01',
+    endDate: '2025-12-05',
+    location: 'São Paulo',
+    expectedAudience: 5000,
+    description: 'Evento de teste',
     logoUrl: '',
     primaryColor: '#3b82f6',
     secondaryColor: '#1e40af'
   };
 
   const financials: FinancialKPI = {
-    budgetTotal: 0,
-    spentToday: 0,
-    balance: 0,
-    spendingLimit: 0,
-    totalSpent: 0
+    budgetTotal: 150000,
+    spentToday: 2500,
+    balance: 75000,
+    spendingLimit: 150000,
+    totalSpent: 75000
   };
 
-  const transactions: Transaction[] = [];
+  const transactions: Transaction[] = [
+    {
+      id: '1',
+      description: 'Pagamento fornecedor de som',
+      amount: 15000,
+      date: '2025-12-01',
+      category: 'Infraestrutura',
+      source: 'manual'
+    },
+    {
+      id: '2',
+      description: 'Cachê artista principal',
+      amount: 50000,
+      date: '2025-11-28',
+      category: 'Artistas',
+      source: 'manual'
+    }
+  ];
 
-  // Dados iniciais - vazios para começar
-  const events: any[] = [];
-  const inventory: any[] = [];
-  const teamMembers: any[] = [];
+  // Dados mock para Agenda e Team
+  const events: any[] = [
+    { id: '1', title: 'Reunião com fornecedores', date: '2025-12-10', location: 'Escritório' }
+  ];
+  const inventory: any[] = [
+    { id: '1', name: 'Cadeiras', quantity: 500, status: 'disponível' }
+  ];
+  const teamMembers: any[] = [
+    { id: '1', name: 'João Silva', role: 'Coordenador', email: 'joao@evento.com' },
+    { id: '2', name: 'Maria Santos', role: 'Produtora', email: 'maria@evento.com' }
+  ];
 
   const renderView = () => {
     switch(currentView) {
@@ -198,13 +221,6 @@ export default function App() {
         return (
           <Suspense fallback={<div className="p-8 text-center">Carregando Perfil...</div>}>
             <EventProfileView profile={profile} onUpdate={() => {}} />
-          </Suspense>
-        );
-      
-      case 'help':
-        return (
-          <Suspense fallback={<div className="p-8 text-center">Carregando Ajuda...</div>}>
-            <HelpView />
           </Suspense>
         );
       

@@ -10,27 +10,22 @@ interface Contact {
   phone: string;
   email: string;
   location: string;
-  segment: 'apoiador' | 'voluntario' | 'lideranca' | 'influencer' | 'eleitor';
+  segment: 'apoiador' | 'voluntario' | 'lideranca' | 'influencer' | 'participante';
   score: number;
   lastContact: string;
   interactions: number;
   tags: string[];
 }
 
-const mockContacts: Contact[] = [
-  { id: '1', name: 'Maria Silva', phone: '(24) 99999-1111', email: 'maria@email.com', location: 'Centro', segment: 'apoiador', score: 95, lastContact: '2025-11-25', interactions: 12, tags: ['saúde', 'educação'] },
-  { id: '2', name: 'João Santos', phone: '(24) 99999-2222', email: 'joao@email.com', location: 'Zona Norte', segment: 'voluntario', score: 88, lastContact: '2025-11-24', interactions: 8, tags: ['jovem', 'tecnologia'] },
-  { id: '3', name: 'Ana Costa', phone: '(24) 99999-3333', email: 'ana@email.com', location: 'Zona Sul', segment: 'lideranca', score: 92, lastContact: '2025-11-26', interactions: 15, tags: ['mulher', 'empreendedora'] },
-  { id: '4', name: 'Pedro Oliveira', phone: '(24) 99999-4444', email: 'pedro@email.com', location: 'Vila Alegria', segment: 'influencer', score: 78, lastContact: '2025-11-23', interactions: 5, tags: ['esporte', 'cultura'] },
-  { id: '5', name: 'Carla Mendes', phone: '(24) 99999-5555', email: 'carla@email.com', location: 'Centro', segment: 'eleitor', score: 65, lastContact: '2025-11-20', interactions: 3, tags: ['comércio'] },
-];
+// Contatos vazios - usuário adiciona os seus próprios
+const mockContacts: Contact[] = [];
 
 const segmentColors = {
   apoiador: 'bg-emerald-100 text-emerald-700 border-emerald-200',
   voluntario: 'bg-blue-100 text-blue-700 border-blue-200',
   lideranca: 'bg-purple-100 text-purple-700 border-purple-200',
   influencer: 'bg-pink-100 text-pink-700 border-pink-200',
-  eleitor: 'bg-slate-100 text-slate-700 border-slate-200',
+  participante: 'bg-slate-100 text-slate-700 border-slate-200',
 };
 
 export const CRMView: React.FC = () => {
@@ -50,7 +45,7 @@ export const CRMView: React.FC = () => {
     phone: '',
     email: '',
     location: '',
-    segment: 'eleitor' as Contact['segment'],
+    segment: 'participante' as Contact['segment'],
     tags: '',
     score: 75,
     lastContact: new Date().toISOString().slice(0, 10),
@@ -106,7 +101,7 @@ export const CRMView: React.FC = () => {
       phone: '',
       email: '',
       location: '',
-      segment: 'eleitor',
+      segment: 'participante',
       tags: '',
       score: 75,
       lastContact: new Date().toISOString().slice(0, 10),
@@ -255,7 +250,7 @@ export const CRMView: React.FC = () => {
       case 'influencer':
         return 'Divulga a campanha nas redes';
       default:
-        return 'Eleitor em relacionamento';
+        return 'Participante em relacionamento';
     }
   };
 
@@ -340,7 +335,7 @@ export const CRMView: React.FC = () => {
               <option value="voluntario">Voluntários</option>
               <option value="lideranca">Lideranças</option>
               <option value="influencer">Influencers</option>
-              <option value="eleitor">Eleitores</option>
+              <option value="eleitor">Participantees</option>
             </select>
             <button
               onClick={() => setShowAdvancedFilters((prev) => !prev)}
@@ -615,7 +610,7 @@ export const CRMView: React.FC = () => {
                     title="Selecionar segmento do contato"
                     required
                   >
-                    <option value="eleitor">Eleitor</option>
+                    <option value="eleitor">Participante</option>
                     <option value="apoiador">Apoiador</option>
                     <option value="voluntario">Voluntário</option>
                     <option value="lideranca">Liderança</option>

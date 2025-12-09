@@ -39,19 +39,19 @@ export const AccountingAdvisor: React.FC<AccountingAdvisorProps> = ({ financials
   const [sessions, setSessions] = useState<ChatSession[]>([
     {
       id: 'demo-accounting-session',
-      title: 'Limite de gastos digital',
+      title: 'Orçamento de marketing',
       lastModified: new Date(Date.now() - 3600_000),
       messages: [
         {
           id: 'init-user',
           role: 'user',
-          text: 'Quanto ainda posso investir em mídia online?',
+          text: 'Quanto ainda posso investir em divulgação?',
           timestamp: new Date(Date.now() - 3600_000),
         },
         {
           id: 'init-assistant',
           role: 'assistant',
-          text: 'Você consumiu 72% do limite de gastos geral. Restam R$ 145.000,00 até atingir o teto definido pelo TSE. Recomendo escalonar as próximas ações para não exceder o limite nos últimos 15 dias de campanha.',
+          text: 'Você consumiu 72% do orçamento aprovado para marketing. Restam R$ 145.000,00 até atingir o teto definido no projeto. Recomendo escalonar as próximas ações para não exceder o limite antes do evento.',
           timestamp: new Date(Date.now() - 3600_000),
         },
       ],
@@ -195,10 +195,10 @@ export const AccountingAdvisor: React.FC<AccountingAdvisorProps> = ({ financials
   };
 
   const quickPrompts = [
-    'Quais documentos preciso anexar na próxima prestação de contas?',
-    'Existe risco de ultrapassar o limite municipal este mês?',
-    'Como devo lançar doações estimáveis em dinheiro?',
-    'Quais são os prazos de envio para o SPCE?'
+    'Quais documentos preciso para prestação de contas Lei Rouanet?',
+    'Como organizar o fluxo de caixa do evento?',
+    'Quais notas fiscais são obrigatórias?',
+    'Como fazer a conciliação bancária do projeto?'
   ];
 
   return (
@@ -247,7 +247,7 @@ export const AccountingAdvisor: React.FC<AccountingAdvisorProps> = ({ financials
           <p className="font-semibold text-slate-700">Resumo financeiro</p>
           <div className="mt-2 grid grid-cols-1 gap-2">
             <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
-              <p className="text-[11px] uppercase tracking-wide text-slate-400">Teto TSE</p>
+              <p className="text-[11px] uppercase tracking-wide text-slate-400">Orçamento</p>
               <p className="text-sm font-semibold text-slate-900">R$ {financials.spendingLimit.toLocaleString('pt-BR')}</p>
             </div>
             <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
@@ -279,7 +279,7 @@ export const AccountingAdvisor: React.FC<AccountingAdvisorProps> = ({ financials
               </div>
               <div>
                 <h2 className="text-base font-bold text-slate-800">Consultor Contábil IA</h2>
-                <p className="text-xs text-slate-500">Resolução 23.607/2019 + Manual de Prestação de Contas TSE</p>
+                <p className="text-xs text-slate-500">Gestão Financeira de Eventos + Lei Rouanet</p>
               </div>
             </div>
           </div>
@@ -295,9 +295,9 @@ export const AccountingAdvisor: React.FC<AccountingAdvisorProps> = ({ financials
               <div className="mb-4 rounded-full bg-white p-4 shadow-sm">
                 <Calculator className="h-12 w-12 text-emerald-600" />
               </div>
-              <h3 className="mb-2 text-xl font-bold text-slate-800">Preparado para revisar sua prestação?</h3>
+              <h3 className="mb-2 text-xl font-bold text-slate-800">Pronto para organizar as finanças do evento?</h3>
               <p className="mb-6 max-w-lg text-sm text-slate-500">
-                Pergunte sobre limites, documentos e riscos de reprovação. Gere planilhas com um clique e mantenha a campanha em conformidade.
+                Pergunte sobre orçamentos, documentos e prestação de contas. Gere planilhas com um clique e mantenha o evento em conformidade.
               </p>
               <div className="grid w-full max-w-xl grid-cols-1 gap-3 md:grid-cols-2">
                 {quickPrompts.map((prompt) => (

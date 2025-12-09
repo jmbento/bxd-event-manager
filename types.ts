@@ -99,6 +99,31 @@ export interface Transaction {
   assetLinked?: string; // e.g., "Plate ABC-1234"
   type?: 'budget' | 'actual';
   budgetId?: string;
+  
+  // Campos para Prestação de Contas Lei de Incentivo
+  supplierCnpj?: string;
+  supplierName?: string;
+  invoiceNumber?: string;
+  invoiceDate?: string;
+  rubric?: 'PESSOAL' | 'ESTRUTURA' | 'LOGÍSTICA' | 'DIVULGAÇÃO' | 'DESPESAS ADMINISTRATIVAS' | 'IMPOSTOS, TAXAS, SEGUROS';
+  budgetItem?: string;
+  paymentMethod?: string;
+  paymentDate?: string;
+  taxRetention?: {
+    inss?: number;
+    irrf?: number;
+    iss?: number;
+  };
+  netAmount?: number;
+  receiptUrl?: string;
+  
+  // Campos para orçamento detalhado
+  quantity?: number;
+  unit?: string;
+  unitQuantity?: number;
+  unitValue?: number;
+  incentiveValue?: number;
+  ownResourcesValue?: number;
 }
 
 export interface BudgetItem {
@@ -213,7 +238,8 @@ export type ModuleKey =
   | 'ecoGestao'
   | 'settings'
   | 'profile'
-  | 'canvas';
+  | 'canvas'
+  | 'help';
 
 export interface ModuleDefinition {
   key: ModuleKey;

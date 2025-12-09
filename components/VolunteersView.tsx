@@ -13,69 +13,17 @@ interface Volunteer {
   skills: string[];
 }
 
-const mockVolunteers: Volunteer[] = [
-  {
-    id: '1',
-    name: 'Carlos Mendes',
-    phone: '(11) 99999-1111',
-    points: 850,
-    eventsParticipated: 12,
-    rank: 1,
-    availability: ['Manhã', 'Tarde'],
-    skills: ['Montagem Palco', 'Logística'],
-  },
-  {
-    id: '2',
-    name: 'Juliana Silva',
-    phone: '(11) 99999-2222',
-    points: 720,
-    eventsParticipated: 10,
-    rank: 2,
-    availability: ['Tarde', 'Noite'],
-    skills: ['Atendimento VIP', 'Design'],
-  },
-  {
-    id: '3',
-    name: 'Roberto Costa',
-    phone: '(11) 99999-3333',
-    points: 680,
-    eventsParticipated: 9,
-    rank: 3,
-    availability: ['Manhã'],
-    skills: ['Motorista', 'Segurança'],
-  },
-  {
-    id: '4',
-    name: 'Fernanda Lima',
-    phone: '(11) 99999-4444',
-    points: 590,
-    eventsParticipated: 8,
-    rank: 4,
-    availability: ['Noite'],
-    skills: ['Fotografia', 'Vídeo'],
-  },
-  {
-    id: '5',
-    name: 'Paulo Santos',
-    phone: '(11) 99999-5555',
-    points: 520,
-    eventsParticipated: 7,
-    rank: 5,
-    availability: ['Tarde'],
-    skills: ['Catering', 'Organização'],
-  },
-];
+// Voluntários vazios - usuário cadastra os seus próprios
+const mockVolunteers: Volunteer[] = [];
 
-const upcomingShifts = [
-  { id: '1', event: 'Soundcheck Main Stage', date: '2025-11-28', time: '14:00', volunteers: 12, needed: 15 },
-  { id: '2', event: 'Experiência Imersiva Lounge', date: '2025-11-29', time: '08:00', volunteers: 8, needed: 10 },
-  { id: '3', event: 'Acolhimento Headliners', date: '2025-11-30', time: '18:00', volunteers: 20, needed: 25 },
-];
+// Turnos vazios - usuário cria os seus próprios
+const upcomingShifts: { id: string; event: string; date: string; time: string; volunteers: number; needed: number }[] = [];
 
+// Módulos de treinamento - templates vazios
 const trainingModules = [
-  { id: '1', title: 'Atendimento ao Público', duration: '30 min', completed: 145, total: 250 },
-  { id: '2', title: 'Experiência VIP & Hospitalidade', duration: '45 min', completed: 98, total: 250 },
-  { id: '3', title: 'Procedimentos de Segurança em Eventos', duration: '60 min', completed: 67, total: 250 },
+  { id: '1', title: 'Atendimento ao Público', duration: '30 min', completed: 0, total: 0 },
+  { id: '2', title: 'Experiência VIP & Hospitalidade', duration: '45 min', completed: 0, total: 0 },
+  { id: '3', title: 'Procedimentos de Segurança em Eventos', duration: '60 min', completed: 0, total: 0 },
 ];
 
 export const VolunteersView: React.FC = () => {

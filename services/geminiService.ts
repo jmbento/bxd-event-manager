@@ -1,7 +1,6 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 
-const apiKey = process.env.API_KEY || '';
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
 const ai = new GoogleGenAI({ apiKey });
 
 export const extractReceiptData = async (base64Image: string) => {
@@ -48,11 +47,22 @@ export const askLegalAdvisor = async (question: string) => {
       model: 'gemini-2.5-flash',
       contents: question,
       config: {
-        systemInstruction: `Você é um advogado especialista em Direito Eleitoral Brasileiro, focado nas regras do TSE (Tribunal Superior Eleitoral) para campanhas municipais. 
-        Suas respostas devem ser baseadas na Lei nº 9.504/1997 (Lei das Eleições) e na Resolução TSE nº 23.610/2019.
+        systemInstruction: `Você é um advogado especialista em Direito para Eventos Culturais, Esportivos e Corporativos no Brasil.
+        Suas respostas devem cobrir:
+        - Eventos incentivados (Lei Rouanet, Lei do Audiovisual, leis municipais e estaduais)
+        - Legislação trabalhista para eventos (contratação de artistas, técnicos, produtores)
+        - Seguros obrigatórios (responsabilidade civil, seguro de vida, acidentes pessoais)
+        - Alvará de funcionamento e autorizações municipais
+        - Direitos autorais (ECAD, UBC, ABRAMUS) e propriedade intelectual
+        - Leis orgânicas municipais (horário de funcionamento, ruído, aglomeração)
+        - Contratos (fornecedores, patrocínio, cessão de espaço)
+        - Responsabilidade civil do organizador
+        - Acessibilidade (Lei nº 13.146/2015 - LBI)
+        - Proteção de dados (LGPD) para cadastro de participantes
+        
         Seja direto, pragmático e cite a base legal quando possível.
-        Se a pergunta for sobre algo proibido (ex: compra de voto, brindes), alerte severamente sobre o risco de cassação de chapa.
-        Se a pergunta for ambígua, peça mais detalhes.`,
+        Se a pergunta envolver risco jurídico, alerte claramente sobre as consequências.
+        Se a pergunta for ambígua, peça mais detalhes sobre o tipo de evento e localização.`,
       }
     });
     return response.text;
@@ -76,7 +86,7 @@ export const askAccountingAdvisor = async (question: string, context?: Accountin
       ? [
           `Total já gasto: R$ ${context.totalSpent?.toLocaleString('pt-BR') ?? 'N/D'}`,
           `Saldo disponível: R$ ${context.balance?.toLocaleString('pt-BR') ?? 'N/D'}`,
-          `Limite TSE: R$ ${context.spendingLimit?.toLocaleString('pt-BR') ?? 'N/D'}`,
+          `Orçamento aprovado: R$ ${context.spendingLimit?.toLocaleString('pt-BR') ?? 'N/D'}`,
           `Gasto hoje: R$ ${context.spentToday?.toLocaleString('pt-BR') ?? 'N/D'}`,
           `Número de lançamentos registrados: ${context.transactionCount ?? 'N/D'}`,
         ].join('\n')
@@ -88,13 +98,20 @@ export const askAccountingAdvisor = async (question: string, context?: Accountin
       model: 'gemini-2.5-flash',
       contents: fullPrompt,
       config: {
-        systemInstruction: `Você é um contador especializado em prestação de contas eleitorais brasileiras.
-        Responda com base na Lei nº 9.504/1997, na Resolução TSE nº 23.607/2019 e manuais do SPCE.
+        systemInstruction: `Você é um contador especializado em gestão financeira de eventos culturais, esportivos e corporativos no Brasil.
+        Suas respostas devem cobrir:
+        - Prestação de contas para eventos incentivados (Lei Rouanet, ProAC, Lei do Audiovisual)
+        - Orçamentos e controle de despesas de eventos
+        - Notas fiscais, recibos e documentação contábil
+        - Contratos com fornecedores e artistas
+        - Relatórios financeiros e demonstrativos
+        - Impostos e obrigações tributárias (ISS, INSS, IR)
+        - Compliance financeiro e auditoria
         Estruture a resposta indicando:
         - interpretação contábil e limites relevantes;
-        - documentos oficiais exigidos (quando aplicável);
-        - passos recomendados para lançamento no SPCE ou geração de relatório.
-        Se a pergunta não for contábil/eleitoral, alerte que está fora do escopo.`,
+        - documentos exigidos para prestação de contas;
+        - boas práticas de gestão financeira de eventos.
+        Se a pergunta não for sobre contabilidade de eventos, alerte que está fora do escopo.`,
       },
     });
     return response.text;

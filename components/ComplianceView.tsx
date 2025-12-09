@@ -11,28 +11,19 @@ interface ComplianceItem {
   description: string;
 }
 
-const complianceChecklist: ComplianceItem[] = [
-  { id: '1', title: 'Registro de Candidatura no TSE', category: 'obrigatorio', status: 'completo', deadline: '2025-08-15', description: 'Protocolo de registro deferido' },
-  { id: '2', title: 'Abertura de Conta Bancária Específica', category: 'obrigatorio', status: 'completo', deadline: '2025-08-20', description: 'Conta corrente exclusiva para campanha' },
-  { id: '3', title: 'Prestação de Contas Parcial', category: 'obrigatorio', status: 'atencao', deadline: '2025-11-30', description: 'Vence em 3 dias' },
-  { id: '4', title: 'Comprovação de Doações', category: 'obrigatorio', status: 'pendente', deadline: '2025-12-10', description: 'Pendente documentação' },
-  { id: '5', title: 'Registro de Pessoal', category: 'obrigatorio', status: 'completo', description: 'Todos colaboradores registrados' },
-  { id: '6', title: 'Seguro de Equipe', category: 'recomendado', status: 'pendente', description: 'Cobertura para voluntários em eventos' },
-];
+// Checklist vazio - usuário adiciona seus próprios itens
+const complianceChecklist: ComplianceItem[] = [];
 
-const documents = [
-  { id: '1', name: 'Contrato - Gráfica Regional', type: 'Contrato', date: '2025-10-15', size: '245 KB' },
-  { id: '2', name: 'Recibo - Doação João Silva', type: 'Recibo', date: '2025-11-25', size: '128 KB' },
-  { id: '3', name: 'Ofício - Polícia Militar', type: 'Ofício', date: '2025-11-22', size: '98 KB' },
-  { id: '4', name: 'NF 001234 - Impressão Santinhos', type: 'Nota Fiscal', date: '2025-11-20', size: '312 KB' },
-];
+// Documentos vazio - usuário faz upload dos seus documentos
+const documents: { id: string; name: string; type: string; date: string; size: string }[] = [];
 
 const templates = [
   { id: '1', title: 'Contrato de Prestação de Serviços', category: 'Jurídico' },
-  { id: '2', title: 'Recibo de Doação', category: 'Financeiro' },
+  { id: '2', title: 'Termo de Responsabilidade', category: 'Jurídico' },
   { id: '3', title: 'Ofício para Órgãos Públicos', category: 'Administrativo' },
   { id: '4', title: 'Termo de Voluntariado', category: 'RH' },
   { id: '5', title: 'Autorização de Uso de Imagem', category: 'Marketing' },
+  { id: '6', title: 'Relatório Lei Rouanet', category: 'Incentivo' },
 ];
 
 export const ComplianceView: React.FC = () => {
@@ -86,8 +77,8 @@ export const ComplianceView: React.FC = () => {
             <Shield className="w-8 h-8" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold">Status de Conformidade TSE</h3>
-            <p className="text-blue-100">Monitore o cumprimento das obrigações eleitorais</p>
+            <h3 className="text-2xl font-bold">Status de Conformidade Legal</h3>
+            <p className="text-blue-100">Monitore o cumprimento das obrigações do seu evento</p>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
@@ -235,9 +226,11 @@ export const ComplianceView: React.FC = () => {
             <AlertCircle className="w-6 h-6 text-white" />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-bold text-slate-800 mb-2">Alertas de Prazo TSE</h3>
+            <h3 className="text-lg font-bold text-slate-800 mb-2">Alertas de Prazo</h3>
             <p className="text-sm text-slate-600 mb-3">
-              Você tem <strong>1 obrigação</strong> com prazo próximo: <strong>Prestação de Contas Parcial</strong> vence em 3 dias.
+              {complianceChecklist.filter(i => i.status === 'atencao').length > 0 
+                ? `Você tem ${complianceChecklist.filter(i => i.status === 'atencao').length} obrigação(s) com prazo próximo.`
+                : 'Nenhum alerta de prazo no momento. Adicione itens ao checklist para acompanhar.'}
             </p>
             <button className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors">
               Ver Detalhes
@@ -283,7 +276,7 @@ export const ComplianceView: React.FC = () => {
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   >
-                    <option value="tse">TSE / Eleitoral</option>
+                    <option value="tse">Lei de Incentivo</option>
                     <option value="financeiro">Financeiro</option>
                     <option value="juridico">Jurídico</option>
                     <option value="outros">Outros</option>

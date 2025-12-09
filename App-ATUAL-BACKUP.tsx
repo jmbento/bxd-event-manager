@@ -1,0 +1,575 @@
+
+import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { Toaster } from 'react-hot-toast';
+import { Header } from './components/Header';
+import { FinancialStats } from './components/FinancialStats';
+import { DashboardWidgets } from './components/DashboardWidgets';
+import { InventoryAlert } from './components/InventoryAlert';
+import { ModuleGate } from './components/ModuleGate';
+import { ModuleShowcasePanel } from './components/ModuleShowcasePanel';
+import { Fab } from './components/Fab';
+
+// Lazy load heavy components for better performance
+const MarketingBoard = lazy(() => import('./components/MarketingBoard').then(m => ({ default: m.MarketingBoard })));
+const AgendaView = lazy(() => import('./components/AgendaView').then(m => ({ default: m.AgendaView })));
+const FinanceView = lazy(() => import('./components/FinanceView').then(m => ({ default: m.FinanceView })));
+const LegalAdvisor = lazy(() => import('./components/LegalAdvisor').then(m => ({ default: m.LegalAdvisor })));
+const TeamView = lazy(() => import('./components/TeamView').then(m => ({ default: m.TeamView })));
+// const FleetView = lazy(() => import('./components/FleetView').then(m => ({ default: m.FleetView })));
+const EventProfileView = lazy(() => import('./components/EventProfileView').then(m => ({ default: m.EventProfileView })));
+const AnalyticsView = lazy(() => import('./components/AnalyticsView').then(m => ({ default: m.AnalyticsView })));
+const CRMView = lazy(() => import('./components/CRMView').then(m => ({ default: m.CRMView })));
+const MarketingAdvancedView = lazy(() => import('./components/MarketingAdvancedView').then(m => ({ default: m.MarketingAdvancedView })));
+const PollsView = lazy(() => import('./components/PollsView').then(m => ({ default: m.PollsView })));
+const VolunteersView = lazy(() => import('./components/VolunteersView').then(m => ({ default: m.VolunteersView })));
+const AdvancedFinanceView = lazy(() => import('./components/AdvancedFinanceView').then(m => ({ default: m.AdvancedFinanceView })));
+const ComplianceView = lazy(() => import('./components/ComplianceView').then(m => ({ default: m.ComplianceView })));
+const SettingsView = lazy(() => import('./components/SettingsView').then(m => ({ default: m.SettingsView })));
+const AccountingAdvisor = lazy(() => import('./components/AccountingAdvisor').then(m => ({ default: m.AccountingAdvisor })));
+const EventCanvasView = lazy(() => import('./components/EventCanvasView').then(m => ({ default: m.EventCanvasView })));
+const StaffManagerView = lazy(() => import('./components/StaffManagerView').then(m => ({ default: m.StaffManagerView })));
+const EcoGestaoView = lazy(() => import('./components/EcoGestaoView').then(m => ({ default: m.EcoGestaoView })));
+import { MODULE_DEFINITIONS, MODULE_MAP, DEFAULT_ENABLED_MODULES } from './config/moduleConfig';
+import { fetchCampaignData } from './services/dataService';
+import {
+  FinancialKPI,
+  ExpenseCategory,
+  InventoryItem,
+  CampaignLocation,
+  LocationStatus,
+  Task,
+  CalendarEvent,
+  TaskStatus,
+  Transaction,
+  TeamMember,
+  Vehicle,
+  FuelLog,
+  EventProfile,
+  ModuleKey,
+  ModuleStateMap,
+  CanvasSpace,
+  CanvasNode,
+  CanvasConnector,
+} from './types';
+
+// --- DADOS INICIAIS VAZIOS (PRONTO PARA IMPORTAÇÃO) ---
+const INITIAL_EVENT_PROFILE: EventProfile = {
+  eventName: 'Meu Evento',
+  edition: '',
+  eventType: '',
+  organizer: '',
+  sponsors: '',
+  cnpj: '',
+  licensingStatus: 'Pendente',
+  logoUrl: '',
+  themeColor: '#3b82f6',
+  socialLinks: {
+    instagram: '',
+    website: '',
+  },
+};
+
+const INITIAL_FINANCIALS: FinancialKPI = {
+  budgetTotal: 0,
+  spentToday: 0,
+  balance: 0,
+  spendingLimit: 0,
+  totalSpent: 0
+};
+
+const INITIAL_EXPENSES: ExpenseCategory[] = [];
+
+const INITIAL_LOCATIONS: CampaignLocation[] = [];
+
+const INITIAL_DIGITAL_STATS = {
+  invested: 0,
+  reach: 0,
+  leads: 0,
+  videosProduced: 0,
+  videoGoal: 0,
+};
+
+const INITIAL_INVENTORY: InventoryItem[] = [];
+
+const INITIAL_TASKS: Task[] = [];
+
+const INITIAL_EVENTS: CalendarEvent[] = [];
+
+const INITIAL_TRANSACTIONS: Transaction[] = [];
+
+const INITIAL_TEAM: TeamMember[] = [];
+  
+const INITIAL_VEHICLES: Vehicle[] = [];
+
+const INITIAL_FUEL_LOGS: FuelLog[] = [];
+
+const INITIAL_CANVAS_SPACES: CanvasSpace[] = [];
+
+// --- APP COMPONENT ---
+export default function App() {
+  const [currentView, setCurrentView] = useState<ModuleKey>('dashboard');
+  const [enabledModules, setEnabledModules] = useState<ModuleStateMap>(DEFAULT_ENABLED_MODULES);
+  const [isModulePanelOpen, setIsModulePanelOpen] = useState(false);
+  const [tasks, setTasks] = useState(INITIAL_TASKS);
+  const [events, setEvents] = useState(INITIAL_EVENTS);
+  const [financials, setFinancials] = useState(INITIAL_FINANCIALS);
+  const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
+  const [expenses, setExpenses] = useState(INITIAL_EXPENSES);
+  const [locations, setLocations] = useState(INITIAL_LOCATIONS);
+  const [digitalStats, setDigitalStats] = useState(INITIAL_DIGITAL_STATS);
+  const [inventory, setInventory] = useState(INITIAL_INVENTORY);
+  const [profile, setProfile] = useState(INITIAL_EVENT_PROFILE);
+  const [team, setTeam] = useState(INITIAL_TEAM);
+  const [vehicles, setVehicles] = useState(INITIAL_VEHICLES);
+  const [fuelLogs, setFuelLogs] = useState(INITIAL_FUEL_LOGS);
+  const [canvasSpaces, setCanvasSpaces] = useState<CanvasSpace[]>(INITIAL_CANVAS_SPACES);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    try {
+      const stored = window.localStorage.getItem('enabledModules');
+      if (!stored) {
+        return;
+      }
+      const parsed = JSON.parse(stored) as Partial<Record<ModuleKey, boolean>>;
+      setEnabledModules((prev) => {
+        const nextState: ModuleStateMap = { ...prev };
+        (Object.keys(parsed) as ModuleKey[]).forEach((key) => {
+          const value = parsed[key];
+          if (typeof value === 'boolean') {
+            nextState[key] = value;
+          }
+        });
+        return nextState;
+      });
+    } catch (error) {
+      console.error('Falha ao carregar módulos salvos', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    window.localStorage.setItem('enabledModules', JSON.stringify(enabledModules));
+  }, [enabledModules]);
+
+  // Hydrate dashboard with Supabase data when credentials are present
+  useEffect(() => {
+    let isMounted = true;
+
+    const syncRemoteCampaign = async () => {
+      const remote = await fetchCampaignData();
+      if (!remote || !isMounted) {
+        return;
+      }
+
+      setProfile(remote.profile);
+      setFinancials(remote.financials);
+      setExpenses(remote.expenses);
+      setLocations(remote.locations);
+      setDigitalStats(remote.digitalStats);
+      setInventory(remote.inventory);
+      setTasks(remote.tasks);
+      setEvents(remote.events);
+      setTransactions(remote.transactions);
+      setTeam(remote.team);
+      setVehicles(remote.vehicles);
+      setFuelLogs(remote.fuelLogs);
+      setEnabledModules((prev) => {
+        const nextState: ModuleStateMap = { ...prev };
+        (Object.entries(remote.moduleStates) as [ModuleKey, boolean][]).forEach(([key, value]) => {
+          nextState[key] = value;
+        });
+        return nextState;
+      });
+    };
+
+    syncRemoteCampaign();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // --- ACTIONS ---
+
+  const handleUpdateProfile = (newProfile: EventProfile) => {
+    setProfile(newProfile);
+  };
+
+  const handleModuleToggle = (moduleKey: ModuleKey, enabled: boolean) => {
+    setEnabledModules((prev) => {
+      if (prev[moduleKey] === enabled) {
+        return prev;
+      }
+      const nextState: ModuleStateMap = { ...prev, [moduleKey]: enabled };
+      if (!enabled && currentView === moduleKey) {
+        const fallback = MODULE_DEFINITIONS.find((module) => module.showInNavigation && nextState[module.key]);
+        setCurrentView(fallback ? fallback.key : 'dashboard');
+      }
+      return nextState;
+    });
+  };
+
+  const handleScanResult = (data: any) => {
+    // Automating Expense Entry from OCR
+    if (data.amount) {
+      const amount = parseFloat(data.amount);
+      const newTransaction: Transaction = {
+        id: Date.now().toString(),
+        description: `Nota Fiscal (IA) - ${data.merchant || 'Desconhecido'}`,
+        amount: amount,
+        date: data.date || new Date().toISOString().split('T')[0],
+        category: 'Despesa Geral',
+        source: 'ocr'
+      };
+      
+      setTransactions([newTransaction, ...transactions]);
+      setFinancials(prev => ({
+        ...prev,
+        spentToday: prev.spentToday + amount,
+        balance: prev.balance - amount,
+        totalSpent: prev.totalSpent + amount
+      }));
+      
+      alert(`Nota de R$ ${amount} processada e debitada!`);
+    }
+  };
+
+  const handleMoveTask = (taskId: string, newStatus: TaskStatus, cost?: number) => {
+    setTasks(tasks.map(t => 
+      t.id === taskId ? { ...t, status: newStatus, cost: cost || t.cost } : t
+    ));
+
+    // Automation: If task is Done and has Cost -> Create Transaction
+    if (newStatus === 'done' && cost && cost > 0) {
+      const task = tasks.find(t => t.id === taskId);
+      const newTransaction: Transaction = {
+        id: `tx-${Date.now()}`,
+        description: `Mkt: ${task?.title}`,
+        amount: cost,
+        date: new Date().toLocaleDateString('pt-BR'),
+        category: 'Marketing',
+        source: 'marketing_task'
+      };
+      
+      setTransactions([newTransaction, ...transactions]);
+      setFinancials(prev => ({
+        ...prev,
+        spentToday: prev.spentToday + cost,
+        balance: prev.balance - cost,
+        totalSpent: prev.totalSpent + cost
+      }));
+    }
+  };
+
+  const handleAddEvent = (eventData: any, autoResources: boolean) => {
+    const newEvent = { ...eventData, id: Date.now().toString(), status: 'pending' };
+    setEvents([...events, newEvent]);
+
+    if (autoResources) {
+        // Automation: Agenda -> Inventory/Finance
+        // 1. Create Task for Marketing
+        const newTask: Task = {
+            id: `auto-${Date.now()}`,
+            title: `Cobrir: ${eventData.title}`,
+            description: `Cobertura de foto/vídeo para o evento em ${eventData.location}`,
+            status: 'briefing',
+            assignee: 'Fotógrafo',
+            linkedEventId: newEvent.id
+        };
+        setTasks([...tasks, newTask]);
+
+        // 2. Debit Estimated Fuel (Mock calculation)
+        if (eventData.logistics?.fuelEstimatedLiters) {
+             const cost = eventData.logistics.fuelEstimatedLiters * 5.80; // Avg Gas Price
+             setFinancials(prev => ({
+                 ...prev,
+                 balance: prev.balance - cost // Reserve budget
+             }));
+             // Also reduce inventory fuel stock
+             setInventory(inv => inv.map(i => 
+                i.type === 'fuel' ? { ...i, quantity: Math.max(0, i.quantity - eventData.logistics.fuelEstimatedLiters) } : i
+             ));
+        }
+
+        // 3. Reserve Materials
+        if (eventData.logistics?.materials) {
+            // Simplified logic: reduce first material found
+            setInventory(inv => inv.map(i => 
+            i.name === 'Pulseiras Acesso' ? { ...i, quantity: i.quantity - 500 } : i
+            ));
+        }
+    }
+  };
+
+  const handleAddFuelLog = (log: Omit<FuelLog, 'id'>) => {
+    const newLogEntry = { ...log, id: `fl-${Date.now()}` };
+    setFuelLogs([newLogEntry, ...fuelLogs]);
+    
+    // Debit Finance
+    const newTransaction: Transaction = {
+        id: `tx-fuel-${Date.now()}`,
+        description: `Abastecimento - ${vehicles.find(v => v.id === log.vehicleId)?.name}`,
+        amount: log.cost,
+        date: new Date(log.date).toLocaleDateString('pt-BR'),
+        category: 'Logística',
+        source: 'logistics_auto',
+        assetLinked: vehicles.find(v => v.id === log.vehicleId)?.plate
+    };
+
+    setTransactions([newTransaction, ...transactions]);
+    setFinancials(prev => ({
+        ...prev,
+        spentToday: prev.spentToday + log.cost,
+        balance: prev.balance - log.cost,
+        totalSpent: prev.totalSpent + log.cost
+    }));
+
+    // Update Vehicle KM
+    setVehicles(prev => prev.map(v => 
+        v.id === log.vehicleId ? { ...v, currentKm: log.kmAtRefuel } : v
+    ));
+  };
+
+  const handleCreateSpace = (template?: string) => {
+    let createdSpace: CanvasSpace | null = null;
+    setCanvasSpaces((prev) => {
+      const last = prev[prev.length - 1];
+      const offsetX = last ? last.origin.x + 2200 : 0;
+      createdSpace = {
+        id: `space-${Date.now()}`,
+        name: template ? `${template} Space` : `Novo Space ${prev.length + 1}`,
+        description: template ? `Espaço criado a partir do template ${template}.` : 'Canvas em branco pronto para layout.',
+        origin: { x: offsetX, y: 0 },
+        scale: 1,
+        templates: template ? [template] : undefined,
+        nodes: [],
+        connectors: [],
+      };
+      return [...prev, createdSpace!];
+    });
+    return createdSpace;
+  };
+
+  const handleAddCanvasNode = (spaceId: string, node: CanvasNode) => {
+    setCanvasSpaces((prev) =>
+      prev.map((space) =>
+        space.id === spaceId
+          ? {
+              ...space,
+              nodes: [...space.nodes, node],
+            }
+          : space
+      )
+    );
+  };
+
+  const handleAddCanvasConnector = (spaceId: string, connector: CanvasConnector) => {
+    setCanvasSpaces((prev) =>
+      prev.map((space) =>
+        space.id === spaceId
+          ? {
+              ...space,
+              connectors: [...space.connectors, connector],
+            }
+          : space
+      )
+    );
+  };
+
+  // --- RENDER ---
+  const renderWithModule = (moduleKey: ModuleKey, element: React.ReactNode) => {
+    const module = MODULE_MAP[moduleKey];
+    if (!module || !module.gateable) {
+      return (
+        <div className="min-h-[200px]">
+          {element}
+        </div>
+      );
+    }
+
+    if (enabledModules[moduleKey]) {
+      return (
+        <div className="min-h-[200px]">
+          {element}
+        </div>
+      );
+    }
+
+    return (
+      <ModuleGate
+        module={module}
+        onEnable={(key) => handleModuleToggle(key, true)}
+        onOpenPanel={() => setIsModulePanelOpen(true)}
+      />
+    );
+  };
+
+  const renderView = () => {
+    switch(currentView) {
+      case 'dashboard':
+        return (
+          <div className="space-y-6">
+            <FinancialStats data={financials} />
+            <InventoryAlert items={inventory} />
+            <DashboardWidgets 
+              expenses={expenses} 
+              locations={locations}
+              digitalStats={digitalStats}
+            />
+          </div>
+        );
+      case 'analytics':
+        return renderWithModule('analytics', 
+          <Suspense fallback={<div className="p-8 text-center">Carregando Analytics...</div>}>
+            <AnalyticsView />
+          </Suspense>
+        );
+      case 'crm':
+        return renderWithModule('crm', 
+          <Suspense fallback={<div className="p-8 text-center">Carregando CRM...</div>}>
+            <CRMView />
+          </Suspense>
+        );
+      case 'marketing':
+        return renderWithModule('marketing', 
+          <Suspense fallback={<div className="p-8 text-center">Carregando Marketing...</div>}>
+            <MarketingBoard tasks={tasks} onMoveTask={handleMoveTask} />
+          </Suspense>
+        );
+      case 'marketingAdvanced':
+        return renderWithModule('marketingAdvanced', 
+          <Suspense fallback={<div className="p-8 text-center">Carregando Marketing Avançado...</div>}>
+            <MarketingAdvancedView />
+          </Suspense>
+        );
+      case 'agenda':
+        return renderWithModule('agenda', 
+          <Suspense fallback={<div className="p-8 text-center">Carregando Agenda...</div>}>
+            <AgendaView events={events} inventory={inventory} onAddEvent={handleAddEvent} />
+          </Suspense>
+        );
+      case 'canvas':
+        return renderWithModule('canvas',
+          <Suspense fallback={<div className="p-8 text-center">Carregando Canvas...</div>}>
+            <EventCanvasView
+              spaces={canvasSpaces}
+              onCreateSpace={handleCreateSpace}
+              onAddNode={handleAddCanvasNode}
+              onAddConnector={handleAddCanvasConnector}
+            />
+          </Suspense>
+        );
+      case 'finance':
+        return renderWithModule('finance', 
+          <Suspense fallback={<div className="p-8 text-center">Carregando Financeiro...</div>}>
+            <FinanceView financials={financials} recentTransactions={transactions} />
+          </Suspense>
+        );
+      case 'advancedFinance':
+        return renderWithModule('advancedFinance', 
+          <Suspense fallback={<div className="p-8 text-center">Carregando Financeiro Avançado...</div>}>
+            <AdvancedFinanceView />
+          </Suspense>
+        );
+      case 'accounting':
+        return renderWithModule('accounting', 
+          <Suspense fallback={<div className="p-8 text-center">Carregando Contábil IA...</div>}>
+            <AccountingAdvisor financials={financials} transactions={transactions} />
+          </Suspense>
+        );
+      case 'polls':
+        return renderWithModule('polls', 
+          <Suspense fallback={<div className="p-8 text-center">Carregando Pesquisas...</div>}>
+            <PollsView />
+          </Suspense>
+        );
+      case 'volunteers':
+        return renderWithModule('volunteers', 
+          <Suspense fallback={<div className="p-8 text-center">Carregando Voluntários...</div>}>
+            <VolunteersView />
+          </Suspense>
+        );
+      case 'team':
+        return renderWithModule('team', 
+          <Suspense fallback={<div className="p-8 text-center">Carregando Equipe...</div>}>
+            <TeamView team={team} />
+          </Suspense>
+        );
+      case 'fleet':
+        return renderWithModule('fleet', <div className="p-8 text-center text-slate-500">Módulo Fleet em manutenção</div>);
+      case 'legal':
+        return renderWithModule('legal', 
+          <Suspense fallback={<div className="p-8 text-center">Carregando Jurídico...</div>}>
+            <LegalAdvisor />
+          </Suspense>
+        );
+      case 'compliance':
+        return renderWithModule('compliance', 
+          <Suspense fallback={<div className="p-8 text-center">Carregando Compliance...</div>}>
+            <ComplianceView />
+          </Suspense>
+        );
+      case 'staffManager':
+        return renderWithModule('staffManager', 
+          <Suspense fallback={<div className="p-8 text-center">Carregando Staff Manager...</div>}>
+            <StaffManagerView />
+          </Suspense>
+        );
+      case 'ecoGestao':
+        return renderWithModule('ecoGestao', 
+          <Suspense fallback={<div className="p-8 text-center">Carregando Eco-Gestão...</div>}>
+            <EcoGestaoView />
+          </Suspense>
+        );
+      case 'settings':
+        return renderWithModule('settings', 
+          <Suspense fallback={<div className="p-8 text-center">Carregando Configurações...</div>}>
+            <SettingsView />
+          </Suspense>
+        );
+      case 'profile':
+        return (
+          <Suspense fallback={<div className="p-8 text-center">Carregando Perfil...</div>}>
+            <EventProfileView profile={profile} onUpdateProfile={handleUpdateProfile} />
+          </Suspense>
+        );
+      default:
+        return <div className="p-8 text-center text-slate-500">Módulo em construção...</div>;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 pb-20">
+      <Header 
+        daysLeft={45} 
+        currentView={currentView} 
+        onNavigate={setCurrentView} 
+        modules={MODULE_DEFINITIONS}
+        enabledModules={enabledModules}
+        onOpenModulePanel={() => setIsModulePanelOpen(true)}
+        profile={profile}
+      />
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {renderView()}
+      </main>
+
+      {isModulePanelOpen && (
+        <ModuleShowcasePanel
+          modules={MODULE_DEFINITIONS}
+          enabledModules={enabledModules}
+          onToggle={handleModuleToggle}
+          onClose={() => setIsModulePanelOpen(false)}
+        />
+      )}
+
+      <Fab onScanResult={handleScanResult} />
+      <Toaster position="top-right" gutter={12} />
+    </div>
+  );
+}

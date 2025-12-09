@@ -46,59 +46,12 @@ interface Incident {
 export const StaffManagerView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'credentialing' | 'deployment' | 'incidents' | 'catering'>('credentialing');
   
-  // Mock Data
-  const [staff] = useState<StaffMember[]>([
-    { 
-      id: '1', name: 'Carlos Silva', photo: '/api/placeholder/40/40', document: '123.456.789-00', 
-      role: 'Segurança', accessLevel: 2, shift: '14:00 - 22:00', post: 'Grade Frontal', 
-      status: 'online', checkInTime: '13:45', location: { lat: -23.5505, lng: -46.6333 }
-    },
-    { 
-      id: '2', name: 'Maria Santos', photo: '/api/placeholder/40/40', document: '987.654.321-00', 
-      role: 'Produção', accessLevel: 3, shift: '12:00 - 02:00', post: 'Backstage', 
-      status: 'online', checkInTime: '11:50'
-    },
-    { 
-      id: '3', name: 'João Oliveira', photo: '/api/placeholder/40/40', document: '456.789.123-00', 
-      role: 'Bar', accessLevel: 1, shift: '16:00 - 00:00', post: 'Bar Central', 
-      status: 'break', checkInTime: '15:30'
-    }
-  ]);
+  // Dados iniciais vazios - usuário adiciona os seus próprios
+  const [staff] = useState<StaffMember[]>([]);
 
-  const [accessLogs] = useState<AccessLog[]>([
-    { id: '1', staffId: '1', staffName: 'Carlos Silva', gate: 'Portão Principal', action: 'entry', timestamp: '13:45:23', photo: '/api/placeholder/40/40' },
-    { id: '2', staffId: '2', staffName: 'Maria Santos', gate: 'Backstage', action: 'entry', timestamp: '11:50:12', photo: '/api/placeholder/40/40' },
-    { id: '3', staffId: '1', staffName: 'Carlos Silva', gate: 'Portão Principal', action: 'exit', timestamp: '18:15:45', photo: '/api/placeholder/40/40' }
-  ]);
+  const [accessLogs] = useState<AccessLog[]>([]);
 
-  const [incidents] = useState<Incident[]>([
-    {
-      id: '1',
-      type: 'medical',
-      severity: 'yellow',
-      title: 'Desmaio na Grade',
-      description: 'Pessoa desmaiou próximo ao palco principal',
-      reportedBy: 'Carlos Silva',
-      location: 'Setor A - Grade Frontal',
-      timestamp: '20:35:12',
-      status: 'resolved',
-      evidence: ['/api/placeholder/100/100'],
-      witnesses: [{ name: 'Ana Costa', phone: '11999887766' }]
-    },
-    {
-      id: '2',
-      type: 'security',
-      severity: 'red',
-      title: 'Invasão de Palco',
-      description: 'Indivíduo tentou subir no palco durante show',
-      reportedBy: 'Maria Santos',
-      location: 'Palco Principal - Coxia',
-      timestamp: '21:45:30',
-      status: 'in-progress',
-      evidence: ['/api/placeholder/100/100', '/api/placeholder/100/100'],
-      witnesses: []
-    }
-  ]);
+  const [incidents] = useState<Incident[]>([]);
 
   const getAccessLevelInfo = (level: number) => {
     switch (level) {
@@ -337,22 +290,22 @@ export const StaffManagerView: React.FC = () => {
                 Arraste os ícones dos seguranças para seus postos específicos
               </p>
               
-              {/* Mock deployment positions */}
+              {/* Posições de deployment - vazias por padrão */}
               <div className="mt-6 grid grid-cols-3 gap-4 text-sm">
-                <div className="bg-green-100 p-2 rounded border border-green-300">
-                  <div className="font-medium text-green-800">Posto 1</div>
-                  <div className="text-green-600">Grade Frontal</div>
-                  <div className="text-xs">👤 Carlos Silva</div>
+                <div className="bg-yellow-100 p-2 rounded border border-yellow-300">
+                  <div className="font-medium text-yellow-800">Posto 1</div>
+                  <div className="text-yellow-600">Grade Frontal</div>
+                  <div className="text-xs">🚫 Vago</div>
                 </div>
                 <div className="bg-yellow-100 p-2 rounded border border-yellow-300">
                   <div className="font-medium text-yellow-800">Posto 2</div>
                   <div className="text-yellow-600">Entrada VIP</div>
                   <div className="text-xs">🚫 Vago</div>
                 </div>
-                <div className="bg-blue-100 p-2 rounded border border-blue-300">
-                  <div className="font-medium text-blue-800">Posto 3</div>
-                  <div className="text-blue-600">Backstage</div>
-                  <div className="text-xs">👤 Maria Santos</div>
+                <div className="bg-yellow-100 p-2 rounded border border-yellow-300">
+                  <div className="font-medium text-yellow-800">Posto 3</div>
+                  <div className="text-yellow-600">Backstage</div>
+                  <div className="text-xs">🚫 Vago</div>
                 </div>
               </div>
             </div>
