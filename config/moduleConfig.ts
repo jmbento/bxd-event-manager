@@ -2,76 +2,33 @@ import { LayoutDashboard, BarChart3, UserCircle2, Map, Trello, Sparkles, DollarS
 import type { ModuleDefinition, ModuleKey, ModulePlan, ModuleStateMap } from '../types';
 
 const moduleDefinitions: ModuleDefinition[] = [
+  // === MÓDULOS PRIORITÁRIOS (Ordem por importância) ===
+  
+  // 1. Dashboard - Visão geral sempre primeiro
   {
     key: 'dashboard',
     label: 'Visão Geral',
-    description: 'Resumo executivo com KPIs e alertas críticos do comitê.',
+    description: 'Resumo executivo com KPIs e alertas críticos do evento.',
     icon: LayoutDashboard,
     plan: 'Starter',
     defaultEnabled: true,
     showInNavigation: true,
     gateable: false,
   },
+  
+  // 2. Configurações - Base de tudo, precisa estar acessível
   {
-    key: 'analytics',
-    label: 'Analytics',
-    description: 'Painéis de marketing digital, alcance e engajamento.',
-    icon: BarChart3,
-    plan: 'Growth',
-    defaultEnabled: true,
-    showInNavigation: true,
-    gateable: true,
-  },
-  {
-    key: 'crm',
-    label: 'CRM',
-    description: 'Gestão de apoiadores, follow-up e exportações.',
-    icon: UserCircle2,
+    key: 'settings',
+    label: 'Configurações',
+    description: 'Parâmetros gerais, equipe e preferências do evento.',
+    icon: SettingsIcon,
     plan: 'Starter',
     defaultEnabled: true,
     showInNavigation: true,
-    gateable: true,
+    gateable: false,
   },
-  {
-    key: 'agenda',
-    label: 'Agenda',
-    description: 'Planejamento de produção com automações logísticas.',
-    icon: Map,
-    plan: 'Growth',
-    defaultEnabled: true,
-    showInNavigation: true,
-    gateable: true,
-  },
-  {
-    key: 'canvas',
-    label: 'Spaces',
-    description: 'Canvas infinito com mapas em escala e múltiplos projetos.',
-    icon: SquareStack,
-    plan: 'Scale',
-    defaultEnabled: true,
-    showInNavigation: true,
-    gateable: true,
-  },
-  {
-    key: 'marketing',
-    label: 'Marketing',
-    description: 'Quadro Kanban da operação criativa integrada ao financeiro.',
-    icon: Trello,
-    plan: 'Starter',
-    defaultEnabled: true,
-    showInNavigation: true,
-    gateable: true,
-  },
-  {
-    key: 'marketingAdvanced',
-    label: 'Mkt Digital',
-    description: 'Automação de mídia paga, criativos e IA generativa.',
-    icon: Sparkles,
-    plan: 'Scale',
-    defaultEnabled: true,
-    showInNavigation: true,
-    gateable: true,
-  },
+  
+  // 3. Financeiro - Controle essencial
   {
     key: 'finance',
     label: 'Financeiro',
@@ -82,77 +39,20 @@ const moduleDefinitions: ModuleDefinition[] = [
     showInNavigation: true,
     gateable: true,
   },
+  
+  // 4. Agenda - Planejamento de produção
   {
-    key: 'advancedFinance',
-    label: 'Fin. Avançado',
-    description: 'Prestação de contas, limites TSE e integrações bancárias.',
-    icon: DollarSign,
-    plan: 'Scale',
-    defaultEnabled: true,
-    showInNavigation: true,
-    gateable: true,
-  },
-  {
-    key: 'accounting',
-    label: 'Contábil IA',
-    description: 'Assistente fiscal para prestação de contas, limites e relatórios.',
-    icon: Calculator,
-    plan: 'Scale',
-    defaultEnabled: true,
-    showInNavigation: true,
-    gateable: true,
-  },
-  {
-    key: 'polls',
-    label: 'Pesquisas',
-    description: 'Termômetro do evento: satisfação, engajamento e feedback do público.',
-    icon: Vote,
+    key: 'agenda',
+    label: 'Agenda',
+    description: 'Planejamento de produção com automações logísticas.',
+    icon: Map,
     plan: 'Growth',
     defaultEnabled: true,
     showInNavigation: true,
     gateable: true,
   },
-  {
-    key: 'volunteers',
-    label: 'Voluntários',
-    description: 'Organização e ativação da militância de rua.',
-    icon: UserPlus,
-    plan: 'Growth',
-    defaultEnabled: true,
-    showInNavigation: true,
-    gateable: true,
-  },
-  {
-    key: 'team',
-    label: 'Equipe',
-    description: 'Time interno com status, contatos e atribuições.',
-    icon: Users,
-    plan: 'Starter',
-    defaultEnabled: true,
-    showInNavigation: true,
-    gateable: true,
-  },
-
-  {
-    key: 'legal',
-    label: 'Jurídico IA',
-    description: 'Assistente IA para eventos incentivados, leis, seguros e obrigatoriedades.',
-    icon: Scale,
-    plan: 'Growth',
-    defaultEnabled: true,
-    showInNavigation: true,
-    gateable: true,
-  },
-  {
-    key: 'compliance',
-    label: 'Compliance',
-    description: 'Checklist normativo e auditoria contínua.',
-    icon: Shield,
-    plan: 'Scale',
-    defaultEnabled: true,
-    showInNavigation: true,
-    gateable: true,
-  },
+  
+  // 5. Credenciamento - Controle de acesso e staff
   {
     key: 'staffManager',
     label: 'Credenciamento',
@@ -163,26 +63,172 @@ const moduleDefinitions: ModuleDefinition[] = [
     showInNavigation: true,
     gateable: true,
   },
+  
+  // 6. CRM - Gestão de contatos
+  {
+    key: 'crm',
+    label: 'CRM',
+    description: 'Gestão de contatos, fornecedores e parceiros.',
+    icon: UserCircle2,
+    plan: 'Starter',
+    defaultEnabled: true,
+    showInNavigation: true,
+    gateable: true,
+  },
+  
+  // 7. Marketing - Operação criativa
+  {
+    key: 'marketing',
+    label: 'Marketing',
+    description: 'Quadro Kanban da operação criativa integrada ao financeiro.',
+    icon: Trello,
+    plan: 'Starter',
+    defaultEnabled: true,
+    showInNavigation: true,
+    gateable: true,
+  },
+  
+  // 8. Analytics - Métricas e relatórios
+  {
+    key: 'analytics',
+    label: 'Analytics',
+    description: 'Painéis de métricas, alcance e engajamento.',
+    icon: BarChart3,
+    plan: 'Growth',
+    defaultEnabled: true,
+    showInNavigation: true,
+    gateable: true,
+  },
+  
+  // === MÓDULOS SECUNDÁRIOS ===
+  
+  // Equipe interna
+  {
+    key: 'team',
+    label: 'Equipe',
+    description: 'Time interno com status, contatos e atribuições.',
+    icon: Users,
+    plan: 'Starter',
+    defaultEnabled: true,
+    showInNavigation: true,
+    gateable: true,
+  },
+  
+  // Voluntários
+  {
+    key: 'volunteers',
+    label: 'Voluntários',
+    description: 'Organização e ativação de voluntários.',
+    icon: UserPlus,
+    plan: 'Growth',
+    defaultEnabled: true,
+    showInNavigation: true,
+    gateable: true,
+  },
+  
+  // Pesquisas
+  {
+    key: 'polls',
+    label: 'Pesquisas',
+    description: 'Termômetro do evento: satisfação, engajamento e feedback do público.',
+    icon: Vote,
+    plan: 'Growth',
+    defaultEnabled: true,
+    showInNavigation: true,
+    gateable: true,
+  },
+  
+  // === MÓDULOS AVANÇADOS ===
+  
+  // Spaces/Canvas 3D
+  {
+    key: 'canvas',
+    label: 'Spaces',
+    description: 'Canvas infinito com mapas em escala e múltiplos projetos.',
+    icon: SquareStack,
+    plan: 'Scale',
+    defaultEnabled: true,
+    showInNavigation: true,
+    gateable: true,
+  },
+  
+  // Marketing Digital Avançado
+  {
+    key: 'marketingAdvanced',
+    label: 'Mkt Digital',
+    description: 'Automação de mídia paga, criativos e IA generativa.',
+    icon: Sparkles,
+    plan: 'Scale',
+    defaultEnabled: true,
+    showInNavigation: true,
+    gateable: true,
+  },
+  
+  // Financeiro Avançado
+  {
+    key: 'advancedFinance',
+    label: 'Fin. Avançado',
+    description: 'Prestação de contas e integrações bancárias.',
+    icon: DollarSign,
+    plan: 'Scale',
+    defaultEnabled: true,
+    showInNavigation: true,
+    gateable: true,
+  },
+  
+  // Eco-Gestão
   {
     key: 'ecoGestao',
     label: 'Eco-Gestão',
-    description: 'Sustentabilidade, gestão de resíduos, eficiência energética e carbon footprint.',
+    description: 'Sustentabilidade, gestão de resíduos e carbon footprint.',
     icon: Leaf,
     plan: 'Scale',
     defaultEnabled: true,
     showInNavigation: true,
     gateable: true,
   },
+  
+  // === MÓDULOS CONSULTORIA IA ===
+  
+  // Jurídico IA
   {
-    key: 'settings',
-    label: 'Configurações',
-    description: 'Parametros gerais, times e preferências da campanha.',
-    icon: SettingsIcon,
-    plan: 'Starter',
+    key: 'legal',
+    label: 'Jurídico IA',
+    description: 'Assistente IA para eventos incentivados, leis, seguros e obrigatoriedades.',
+    icon: Scale,
+    plan: 'Growth',
     defaultEnabled: true,
     showInNavigation: true,
-    gateable: false,
+    gateable: true,
   },
+  
+  // Contábil IA
+  {
+    key: 'accounting',
+    label: 'Contábil IA',
+    description: 'Assistente fiscal para prestação de contas e relatórios.',
+    icon: Calculator,
+    plan: 'Scale',
+    defaultEnabled: true,
+    showInNavigation: true,
+    gateable: true,
+  },
+  
+  // Compliance
+  {
+    key: 'compliance',
+    label: 'Compliance',
+    description: 'Checklist normativo e auditoria contínua.',
+    icon: Shield,
+    plan: 'Scale',
+    defaultEnabled: true,
+    showInNavigation: true,
+    gateable: true,
+  },
+  
+  // === SISTEMA ===
+  
+  // Perfil do Evento (não aparece no menu)
   {
     key: 'profile',
     label: 'Perfil do Evento',
@@ -193,6 +239,8 @@ const moduleDefinitions: ModuleDefinition[] = [
     showInNavigation: false,
     gateable: false,
   },
+  
+  // Ajuda - sempre por último
   {
     key: 'help',
     label: 'Ajuda',
