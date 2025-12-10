@@ -20,6 +20,14 @@ const transactionRoutes = require('./routes/transaction.routes');
 const accountRoutes = require('./routes/account.routes');
 const reportRoutes = require('./routes/report.routes');
 
+// Rotas de email (ES Module - precisa de import dinâmico)
+let emailRoutes = null;
+import('./routes/email.routes.js').then(module => {
+  emailRoutes = module.default;
+}).catch(err => {
+  console.warn('⚠️ Email routes não carregadas:', err.message);
+});
+
 // Middleware de autenticação
 const { authenticateToken } = require('./middleware/auth.middleware');
 
@@ -84,6 +92,14 @@ app.use('/api/access-logs', authenticateToken, accessRoutes);
 app.use('/api/transactions', authenticateToken, transactionRoutes);
 app.use('/api/accounts', authenticateToken, accountRoutes);
 app.use('/api/reports', authenticateToken, reportRoutes);
+
+// Rota de email (carregada dinamicamente)
+app.use('/api/email', (req, res, next) => {
+  if (emailRoutes) {
+    return emailRoutes(req, res, next);
+  }
+  res.status(503).json({ error: 'Serviço de email não disponível' });
+});
 
 // =============================================================================
 // TRATAMENTO DE ERROS

@@ -35,7 +35,7 @@ const EcoGestaoView = lazy(() => import('./components/EcoGestaoView').then(m => 
 const SettingsViewSimple = lazy(() => import('./components/SettingsViewSimple').then(m => ({ default: m.SettingsViewSimple })));
 const EventProfileView = lazy(() => import('./components/EventProfileView').then(m => ({ default: m.EventProfileView })));
 const HelpView = lazy(() => import('./components/HelpView').then(m => ({ default: m.HelpView })));
-const ParticipantsNFCView = lazy(() => import('./components/ParticipantsNFCView').then(m => ({ default: m.default })));
+const NFCManager = lazy(() => import('./components/NFCModule').then(m => ({ default: m.NFCManager })));
 
 export default function App() {
   // TODOS os useState DEVEM vir ANTES de qualquer return condicional!
@@ -281,8 +281,8 @@ export default function App() {
       case 'nfc':
       case 'participants':
         return (
-          <Suspense fallback={<div className="p-8 text-center">Carregando Pulseiras NFC...</div>}>
-            <ParticipantsNFCView />
+          <Suspense fallback={<div className="p-8 text-center">Carregando Módulo NFC...</div>}>
+            <NFCManager eventId={profile.eventName || 'evento-demo'} />
           </Suspense>
         );
       
