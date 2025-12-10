@@ -2,6 +2,7 @@ import React, { useState, lazy, Suspense } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { Header } from './components/Header';
 import { FinancialStats } from './components/FinancialStats';
+import { LoginView } from './components/LoginView';
 import { MODULE_DEFINITIONS, DEFAULT_ENABLED_MODULES } from './config/moduleConfig';
 import type { EventProfile, FinancialKPI, Transaction } from './types';
 
@@ -22,15 +23,47 @@ const LegalAdvisor = lazy(() => import('./components/LegalAdvisor').then(m => ({
 const ComplianceView = lazy(() => import('./components/ComplianceView').then(m => ({ default: m.ComplianceView })));
 const StaffManagerView = lazy(() => import('./components/StaffManagerView').then(m => ({ default: m.StaffManagerView })));
 const EcoGestaoView = lazy(() => import('./components/EcoGestaoView').then(m => ({ default: m.EcoGestaoView })));
-const SettingsView = lazy(() => import('./components/SettingsView').then(m => ({ default: m.SettingsView })));
+const SettingsViewSimple = lazy(() => import('./components/SettingsViewSimple').then(m => ({ default: m.SettingsViewSimple })));
 const EventProfileView = lazy(() => import('./components/EventProfileView').then(m => ({ default: m.EventProfileView })));
 const HelpView = lazy(() => import('./components/HelpView').then(m => ({ default: m.HelpView })));
 
 export default function App() {
+  // Estado de autenticação
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    // Verificar se já está logado (via localStorage)
+    return localStorage.getItem('bxd_auth') === 'true';
+  });
+  const [currentUser, setCurrentUser] = useState<{email: string} | null>(() => {
+    const saved = localStorage.getItem('bxd_user');
+    return saved ? JSON.parse(saved) : null;
+  });
+
   const [currentView, setCurrentView] = useState('dashboard');
   const [isModulePanelOpen, setIsModulePanelOpen] = useState(false);
 
-  const profile: EventProfile = {
+  // Handler de login
+  const handleLogin = (email: string, password: string) => {
+    // Salvar autenticação
+    localStorage.setItem('bxd_auth', 'true');
+    localStorage.setItem('bxd_user', JSON.stringify({ email }));
+    setCurrentUser({ email });
+    setIsAuthenticated(true);
+  };
+
+  // Handler de logout
+  const handleLogout = () => {
+    localStorage.removeItem('bxd_auth');
+    localStorage.removeItem('bxd_user');
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+  };
+
+  // Se não estiver autenticado, mostrar tela de login
+  if (!isAuthenticated) {
+    return <LoginView onLogin={handleLogin} />;
+  }
+
+  const [profile, setProfile] = useState<EventProfile>({
     eventName: '',
     edition: '',
     startDate: '',
@@ -41,7 +74,7 @@ export default function App() {
     logoUrl: '',
     primaryColor: '#3b82f6',
     secondaryColor: '#1e40af'
-  };
+  });
 
   const financials: FinancialKPI = {
     budgetTotal: 0,
@@ -190,7 +223,7 @@ export default function App() {
       case 'settings':
         return (
           <Suspense fallback={<div className="p-8 text-center">Carregando Configurações...</div>}>
-            <SettingsView profile={profile} onUpdateProfile={() => {}} />
+            <SettingsViewSimple profile={profile} onSave={(p) => setProfile(p)} />
           </Suspense>
         );
       
