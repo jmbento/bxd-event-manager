@@ -28,9 +28,10 @@ const EventProfileView = lazy(() => import('./components/EventProfileView').then
 const HelpView = lazy(() => import('./components/HelpView').then(m => ({ default: m.HelpView })));
 
 export default function App() {
+  // TODOS os useState DEVEM vir ANTES de qualquer return condicional!
+  
   // Estado de autenticação
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    // Verificar se já está logado (via localStorage)
     return localStorage.getItem('bxd_auth') === 'true';
   });
   const [currentUser, setCurrentUser] = useState<{email: string} | null>(() => {
@@ -40,29 +41,8 @@ export default function App() {
 
   const [currentView, setCurrentView] = useState('dashboard');
   const [isModulePanelOpen, setIsModulePanelOpen] = useState(false);
-
-  // Handler de login
-  const handleLogin = (email: string, password: string) => {
-    // Salvar autenticação
-    localStorage.setItem('bxd_auth', 'true');
-    localStorage.setItem('bxd_user', JSON.stringify({ email }));
-    setCurrentUser({ email });
-    setIsAuthenticated(true);
-  };
-
-  // Handler de logout
-  const handleLogout = () => {
-    localStorage.removeItem('bxd_auth');
-    localStorage.removeItem('bxd_user');
-    setCurrentUser(null);
-    setIsAuthenticated(false);
-  };
-
-  // Se não estiver autenticado, mostrar tela de login
-  if (!isAuthenticated) {
-    return <LoginView onLogin={handleLogin} />;
-  }
-
+  
+  // Estado do perfil do evento - MOVIDO PARA ANTES DO RETURN CONDICIONAL
   const [profile, setProfile] = useState<EventProfile>({
     eventName: '',
     edition: '',
@@ -76,6 +56,28 @@ export default function App() {
     secondaryColor: '#1e40af'
   });
 
+  // Handler de login
+  const handleLogin = (email: string, password: string) => {
+    localStorage.setItem('bxd_auth', 'true');
+    localStorage.setItem('bxd_user', JSON.stringify({ email }));
+    setCurrentUser({ email });
+    setIsAuthenticated(true);
+  };
+
+  // Handler de logout (para uso futuro)
+  const handleLogout = () => {
+    localStorage.removeItem('bxd_auth');
+    localStorage.removeItem('bxd_user');
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+  };
+
+  // Se não estiver autenticado, mostrar tela de login
+  if (!isAuthenticated) {
+    return <LoginView onLogin={handleLogin} />;
+  }
+
+  // Dados financeiros - podem vir do banco futuramente
   const financials: FinancialKPI = {
     budgetTotal: 0,
     spentToday: 0,
