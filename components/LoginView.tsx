@@ -175,6 +175,13 @@ export const LoginView: React.FC<LoginViewProps> = ({
             </button>
           </div>
 
+          {/* Dica de primeiro acesso */}
+          <div className="mt-4 bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
+            <p className="text-blue-200 text-xs text-center">
+              <strong>Primeiro acesso?</strong> Use <span className="font-mono bg-blue-500/20 px-1 rounded">admin@evento.com</span> com qualquer senha para configurar o sistema.
+            </p>
+          </div>
+
           {/* Links */}
           {!isFirstAccess && (
             <div className="mt-4 text-center">

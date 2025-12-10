@@ -1,10 +1,19 @@
-import React, { useState, lazy, Suspense } from 'react';
+import React, { useState, lazy, Suspense, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { Header } from './components/Header';
 import { FinancialStats } from './components/FinancialStats';
 import { LoginView } from './components/LoginView';
 import { MODULE_DEFINITIONS, DEFAULT_ENABLED_MODULES } from './config/moduleConfig';
-import type { EventProfile, FinancialKPI, Transaction } from './types';
+import type { EventProfile, FinancialKPI, Transaction, ModuleKey, SystemUser } from './types';
+import { 
+  login as auditLogin, 
+  logout as auditLogout, 
+  getCurrentUser, 
+  setCurrentUser as setAuditUser,
+  canAccessModule,
+  logModuleAccess,
+  getUsers
+} from './services/auditService';
 
 // Lazy load dos módulos pesados - usando default export wrapper
 const FinanceViewSimple = lazy(() => import('./components/FinanceViewSimple').then(m => ({ default: m.FinanceViewSimple })));
@@ -26,21 +35,24 @@ const EcoGestaoView = lazy(() => import('./components/EcoGestaoView').then(m => 
 const SettingsViewSimple = lazy(() => import('./components/SettingsViewSimple').then(m => ({ default: m.SettingsViewSimple })));
 const EventProfileView = lazy(() => import('./components/EventProfileView').then(m => ({ default: m.EventProfileView })));
 const HelpView = lazy(() => import('./components/HelpView').then(m => ({ default: m.HelpView })));
+const ParticipantsNFCView = lazy(() => import('./components/ParticipantsNFCView').then(m => ({ default: m.default })));
 
 export default function App() {
   // TODOS os useState DEVEM vir ANTES de qualquer return condicional!
   
-  // Estado de autenticação
+  // Estado de autenticação - agora usando o serviço de auditoria
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('bxd_auth') === 'true';
+    const user = getCurrentUser();
+    return user !== null && user.status === 'active';
   });
-  const [currentUser, setCurrentUser] = useState<{email: string} | null>(() => {
-    const saved = localStorage.getItem('bxd_user');
-    return saved ? JSON.parse(saved) : null;
+  
+  const [systemUser, setSystemUser] = useState<SystemUser | null>(() => {
+    return getCurrentUser();
   });
 
   const [currentView, setCurrentView] = useState('dashboard');
   const [isModulePanelOpen, setIsModulePanelOpen] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   
   // Estado do perfil do evento - MOVIDO PARA ANTES DO RETURN CONDICIONAL
   const [profile, setProfile] = useState<EventProfile>({
@@ -56,25 +68,76 @@ export default function App() {
     secondaryColor: '#1e40af'
   });
 
-  // Handler de login
-  const handleLogin = (email: string, password: string) => {
-    localStorage.setItem('bxd_auth', 'true');
-    localStorage.setItem('bxd_user', JSON.stringify({ email }));
-    setCurrentUser({ email });
-    setIsAuthenticated(true);
+  // Registrar acesso ao módulo quando mudar de view
+  useEffect(() => {
+    if (isAuthenticated && currentView) {
+      logModuleAccess(currentView as ModuleKey);
+    }
+  }, [currentView, isAuthenticated]);
+
+  // Handler de login - agora com sistema robusto
+  const handleLogin = async (email: string, password: string) => {
+    setLoginError(null);
+    
+    // Inicializar sistema com admin padrão se necessário
+    const users = getUsers();
+    
+    // Verificar se é o primeiro acesso (criar admin)
+    if (users.length === 1 && users[0].email === 'admin@evento.com') {
+      // Aceitar qualquer email como admin no primeiro acesso para configuração
+      const result = await auditLogin(email, password);
+      
+      if (!result.success && email !== 'admin@evento.com') {
+        // Se não é o admin padrão e não encontrou, criar como admin temporário
+        // Em produção, isso seria via convite
+        setLoginError('Solicite um convite ao administrador do sistema.');
+        return;
+      }
+    }
+    
+    const result = await auditLogin(email, password);
+    
+    if (result.success && result.user) {
+      setSystemUser(result.user);
+      setIsAuthenticated(true);
+      setLoginError(null);
+    } else {
+      setLoginError(result.error || 'Erro ao fazer login');
+    }
   };
 
-  // Handler de logout (para uso futuro)
-  const handleLogout = () => {
-    localStorage.removeItem('bxd_auth');
-    localStorage.removeItem('bxd_user');
-    setCurrentUser(null);
+  // Handler de logout
+  const handleLogout = async () => {
+    await auditLogout();
+    setSystemUser(null);
     setIsAuthenticated(false);
+    setCurrentView('dashboard');
+  };
+
+  // Verificar permissão antes de navegar para um módulo
+  const handleNavigate = (view: string) => {
+    // Dashboard e settings sempre acessíveis
+    if (view === 'dashboard') {
+      setCurrentView(view);
+      return;
+    }
+    
+    // Verificar permissão
+    if (canAccessModule(view as ModuleKey)) {
+      setCurrentView(view);
+    } else {
+      alert('Você não tem permissão para acessar este módulo. Entre em contato com o administrador.');
+    }
   };
 
   // Se não estiver autenticado, mostrar tela de login
   if (!isAuthenticated) {
-    return <LoginView onLogin={handleLogin} />;
+    return (
+      <LoginView 
+        onLogin={handleLogin} 
+        eventName={profile.eventName || 'BXD Power Event'}
+      />
+    );
   }
 
   // Dados financeiros - podem vir do banco futuramente
@@ -215,6 +278,14 @@ export default function App() {
           </Suspense>
         );
       
+      case 'nfc':
+      case 'participants':
+        return (
+          <Suspense fallback={<div className="p-8 text-center">Carregando Pulseiras NFC...</div>}>
+            <ParticipantsNFCView />
+          </Suspense>
+        );
+      
       case 'ecoGestao':
         return (
           <Suspense fallback={<div className="p-8 text-center">Carregando Eco-Gestão...</div>}>
@@ -262,7 +333,7 @@ export default function App() {
       <Header 
         daysLeft={45} 
         currentView={currentView} 
-        onNavigate={setCurrentView} 
+        onNavigate={handleNavigate} 
         modules={MODULE_DEFINITIONS}
         enabledModules={DEFAULT_ENABLED_MODULES}
         onOpenModulePanel={() => setIsModulePanelOpen(true)}

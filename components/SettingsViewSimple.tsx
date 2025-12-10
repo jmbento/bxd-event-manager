@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { 
   Settings, Save, Calendar, MapPin, Users, Palette, Image, 
   Bell, Shield, Mail, Phone, Globe, Building, Clock, Upload,
-  CheckCircle, X, Plus, Trash2, Edit2, Copy, ExternalLink
+  CheckCircle, X, Plus, Trash2, Edit2, Copy, ExternalLink, Lock
 } from 'lucide-react';
 import type { EventProfile } from '../types';
+import { AdminAccessControl } from './AdminAccessControl';
+import { isAdmin, getCurrentUser } from '../services/auditService';
 
 interface SettingsViewProps {
   profile?: EventProfile;
@@ -20,7 +22,9 @@ interface TeamMember {
 }
 
 export const SettingsViewSimple: React.FC<SettingsViewProps> = ({ profile, onSave }) => {
-  const [activeTab, setActiveTab] = useState<'event' | 'team' | 'access' | 'notifications'>('event');
+  const [activeTab, setActiveTab] = useState<'event' | 'team' | 'access' | 'notifications' | 'security'>('event');
+  const currentUser = getCurrentUser();
+  const userIsAdmin = isAdmin();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -146,6 +150,7 @@ export const SettingsViewSimple: React.FC<SettingsViewProps> = ({ profile, onSav
           { id: 'team', label: 'Equipe', icon: Users },
           { id: 'access', label: 'Link de Acesso', icon: ExternalLink },
           { id: 'notifications', label: 'Notificações', icon: Bell },
+          ...(userIsAdmin ? [{ id: 'security', label: 'Controle de Acesso', icon: Lock }] : []),
         ].map(tab => (
           <button
             key={tab.id}
@@ -542,6 +547,11 @@ export const SettingsViewSimple: React.FC<SettingsViewProps> = ({ profile, onSav
             ))}
           </div>
         </div>
+      )}
+
+      {/* Tab: Controle de Acesso (Admin Only) */}
+      {activeTab === 'security' && userIsAdmin && (
+        <AdminAccessControl />
       )}
     </div>
   );

@@ -64,6 +64,18 @@ const moduleDefinitions: ModuleDefinition[] = [
     gateable: true,
   },
   
+  // 5.1. NFC/Pulseiras - Gestão de participantes
+  {
+    key: 'nfc',
+    label: 'Pulseiras NFC',
+    description: 'Gestão de pulseiras NFC: ativação, cashless, controle de acesso e coleta de leads.',
+    icon: UserPlus,
+    plan: 'Growth',
+    defaultEnabled: true,
+    showInNavigation: true,
+    gateable: true,
+  },
+  
   // 6. CRM - Gestão de contatos
   {
     key: 'crm',

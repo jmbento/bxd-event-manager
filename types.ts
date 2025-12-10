@@ -235,6 +235,8 @@ export type ModuleKey =
   | 'legal'
   | 'compliance'
   | 'staffManager'
+  | 'nfc'
+  | 'participants'
   | 'ecoGestao'
   | 'settings'
   | 'profile'
@@ -287,3 +289,104 @@ export interface CanvasSpace {
   connectors: CanvasConnector[];
   templates?: string[];
 }
+
+// ============================================================
+// SISTEMA DE CONTROLE DE ACESSO E AUDITORIA
+// ============================================================
+
+export type UserRole = 'admin' | 'manager' | 'collaborator' | 'viewer';
+
+export type UserStatus = 'active' | 'pending' | 'blocked' | 'inactive';
+
+export interface UserPermissions {
+  modules: ModuleKey[];  // Lista de módulos que o usuário pode acessar
+  canInvite: boolean;    // Pode convidar outros usuários
+  canExport: boolean;    // Pode exportar dados
+  canDelete: boolean;    // Pode deletar registros
+  canEditFinance: boolean; // Pode editar financeiro
+}
+
+export interface SystemUser {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  status: UserStatus;
+  permissions: UserPermissions;
+  createdAt: string;
+  createdBy: string;      // ID do admin que criou
+  lastLogin?: string;
+  lastActivity?: string;
+  inviteToken?: string;   // Token para primeiro acesso
+  inviteExpires?: string; // Expiração do convite
+  blockedAt?: string;     // Data do bloqueio
+  blockedBy?: string;     // Quem bloqueou
+  blockedReason?: string; // Motivo do bloqueio
+  photoUrl?: string;
+}
+
+export type AuditAction = 
+  | 'login'
+  | 'logout'
+  | 'login_failed'
+  | 'view_module'
+  | 'create_record'
+  | 'update_record'
+  | 'delete_record'
+  | 'export_data'
+  | 'invite_user'
+  | 'update_permissions'
+  | 'block_user'
+  | 'unblock_user'
+  | 'password_change'
+  | 'password_reset';
+
+export interface AuditLog {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  action: AuditAction;
+  module?: ModuleKey;
+  details?: string;       // Detalhes da ação (ex: "Atualizou transação #123")
+  targetUserId?: string;  // Se a ação foi em outro usuário
+  ipAddress?: string;
+  userAgent?: string;
+  location?: {
+    city?: string;
+    region?: string;
+    country?: string;
+  };
+  timestamp: string;
+  sessionId?: string;
+}
+
+export interface UserInvite {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  permissions: UserPermissions;
+  token: string;
+  createdAt: string;
+  createdBy: string;
+  expiresAt: string;
+  usedAt?: string;
+  status: 'pending' | 'accepted' | 'expired' | 'revoked';
+}
+
+export interface AccessSession {
+  id: string;
+  userId: string;
+  startedAt: string;
+  lastActivity: string;
+  ipAddress?: string;
+  userAgent?: string;
+  location?: {
+    city?: string;
+    region?: string;
+    country?: string;
+  };
+  isActive: boolean;
+}
+
