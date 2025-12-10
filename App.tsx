@@ -21,7 +21,7 @@ const CRMView = lazy(() => import('./components/CRMView').then(m => ({ default: 
 const MarketingBoard = lazy(() => import('./components/MarketingBoard').then(m => ({ default: m.MarketingBoard })));
 const AgendaView = lazy(() => import('./components/AgendaView').then(m => ({ default: m.AgendaView })));
 const AnalyticsView = lazy(() => import('./components/AnalyticsView').then(m => ({ default: m.AnalyticsView })));
-const TeamView = lazy(() => import('./components/TeamView').then(m => ({ default: m.TeamView })));
+const TeamView = lazy(() => import('./components/TeamViewComplete').then(m => ({ default: m.TeamViewComplete })));
 const EventPlanner3D = lazy(() => import('./components/EventPlanner3D').then(m => ({ default: m.EventPlanner3D })));
 const MarketingAdvancedView = lazy(() => import('./components/MarketingAdvancedView').then(m => ({ default: m.MarketingAdvancedView })));
 const AdvancedFinanceView = lazy(() => import('./components/AdvancedFinanceView').then(m => ({ default: m.AdvancedFinanceView })));
