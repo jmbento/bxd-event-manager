@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Shield, Users, Camera, MapPin, Clock, AlertTriangle, Phone, QrCode, 
   CheckCircle2, XCircle, Eye, Zap, UserCheck, Mic, FileText, Plus,
-  Navigation, Radio, Utensils, Badge, Lock, Unlock, RotateCcw
+  Navigation, Radio, Utensils, Badge, Lock, Unlock, RotateCcw, X, Save, Trash2, Edit2
 } from 'lucide-react';
 
 interface StaffMember {
@@ -16,6 +16,9 @@ interface StaffMember {
   post: string;
   status: 'online' | 'offline' | 'break';
   checkInTime?: string;
+  phone?: string;
+  email?: string;
+  dietaryRestriction?: 'standard' | 'vegetarian' | 'vegan';
   location?: { lat: number; lng: number; };
 }
 
@@ -43,15 +46,332 @@ interface Incident {
   witnesses: Array<{ name: string; phone: string; }>;
 }
 
+// Modal de Cadastro/Edição de Staff
+const StaffModal: React.FC<{
+  staff?: StaffMember | null;
+  onSave: (staff: StaffMember) => void;
+  onClose: () => void;
+}> = ({ staff, onSave, onClose }) => {
+  const [formData, setFormData] = useState<Partial<StaffMember>>(staff || {
+    name: '',
+    document: '',
+    role: '',
+    accessLevel: 1,
+    shift: 'Manhã (06:00-14:00)',
+    post: '',
+    phone: '',
+    email: '',
+    dietaryRestriction: 'standard',
+    photo: `https://api.dicebear.com/7.x/avataaars/svg?seed=${Date.now()}`,
+    status: 'offline'
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.document || !formData.role) {
+      alert('Preencha todos os campos obrigatórios');
+      return;
+    }
+    onSave({
+      ...formData,
+      id: staff?.id || `staff-${Date.now()}`,
+    } as StaffMember);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-slate-200 flex justify-between items-center sticky top-0 bg-white">
+          <h3 className="text-xl font-bold text-slate-800">
+            {staff ? 'Editar Staff' : 'Novo Cadastro de Staff'}
+          </h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Foto e Preview */}
+          <div className="flex items-center gap-6">
+            <div className="relative">
+              <img 
+                src={formData.photo || `https://api.dicebear.com/7.x/avataaars/svg?seed=${Date.now()}`}
+                alt="Preview"
+                className="w-24 h-24 rounded-full border-4 border-blue-200"
+              />
+              <div className="absolute -bottom-1 -right-1 bg-blue-600 text-white rounded-full p-1">
+                <Camera className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm text-slate-500 mb-2">URL da foto (opcional)</p>
+              <input
+                type="text"
+                value={formData.photo || ''}
+                onChange={(e) => setFormData({...formData, photo: e.target.value})}
+                placeholder="https://exemplo.com/foto.jpg"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+              />
+            </div>
+          </div>
+
+          {/* Dados Pessoais */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Nome Completo *
+              </label>
+              <input
+                type="text"
+                value={formData.name || ''}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                placeholder="João da Silva"
+                required
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                CPF / Documento *
+              </label>
+              <input
+                type="text"
+                value={formData.document || ''}
+                onChange={(e) => setFormData({...formData, document: e.target.value})}
+                placeholder="000.000.000-00"
+                required
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Telefone
+              </label>
+              <input
+                type="tel"
+                value={formData.phone || ''}
+                onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                placeholder="(11) 99999-9999"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                value={formData.email || ''}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                placeholder="joao@email.com"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </div>
+
+          {/* Função e Posto */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Função / Cargo *
+              </label>
+              <select
+                value={formData.role || ''}
+                onChange={(e) => setFormData({...formData, role: e.target.value})}
+                required
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Selecione...</option>
+                <option value="Segurança">Segurança</option>
+                <option value="Recepcionista">Recepcionista</option>
+                <option value="Coordenador">Coordenador</option>
+                <option value="Técnico de Som">Técnico de Som</option>
+                <option value="Técnico de Luz">Técnico de Luz</option>
+                <option value="Produção">Produção</option>
+                <option value="Limpeza">Limpeza</option>
+                <option value="Brigada">Brigada de Incêndio</option>
+                <option value="Socorrista">Socorrista</option>
+                <option value="Catering">Catering</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Posto / Local
+              </label>
+              <select
+                value={formData.post || ''}
+                onChange={(e) => setFormData({...formData, post: e.target.value})}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Selecione...</option>
+                <option value="Entrada Principal">Entrada Principal</option>
+                <option value="Backstage">Backstage</option>
+                <option value="Área VIP">Área VIP</option>
+                <option value="Palco Principal">Palco Principal</option>
+                <option value="Bilheteria">Bilheteria</option>
+                <option value="Estacionamento">Estacionamento</option>
+                <option value="Praça de Alimentação">Praça de Alimentação</option>
+                <option value="Ambulatório">Ambulatório</option>
+                <option value="Volante">Volante / Móvel</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Turno e Nível de Acesso */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Turno
+              </label>
+              <select
+                value={formData.shift || ''}
+                onChange={(e) => setFormData({...formData, shift: e.target.value})}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="Manhã (06:00-14:00)">Manhã (06:00-14:00)</option>
+                <option value="Tarde (14:00-22:00)">Tarde (14:00-22:00)</option>
+                <option value="Noite (22:00-06:00)">Noite (22:00-06:00)</option>
+                <option value="Integral">Integral</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Nível de Acesso
+              </label>
+              <div className="flex gap-2">
+                {[1, 2, 3].map((level) => (
+                  <button
+                    key={level}
+                    type="button"
+                    onClick={() => setFormData({...formData, accessLevel: level as 1|2|3})}
+                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                      formData.accessLevel === level
+                        ? level === 1 ? 'bg-green-500 text-white' 
+                        : level === 2 ? 'bg-yellow-500 text-white'
+                        : 'bg-red-500 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {level === 1 ? 'Básico' : level === 2 ? 'Restrito' : 'Total'}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                {formData.accessLevel === 1 && 'Áreas comuns apenas'}
+                {formData.accessLevel === 2 && 'Backstage e áreas restritas'}
+                {formData.accessLevel === 3 && 'Acesso total ao evento'}
+              </p>
+            </div>
+          </div>
+
+          {/* Restrição Alimentar */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Restrição Alimentar (para Catering)
+            </label>
+            <div className="flex gap-3">
+              {[
+                { value: 'standard', label: 'Padrão', emoji: '🍖' },
+                { value: 'vegetarian', label: 'Vegetariano', emoji: '🥗' },
+                { value: 'vegan', label: 'Vegano', emoji: '🌱' },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setFormData({...formData, dietaryRestriction: option.value as any})}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                    formData.dietaryRestriction === option.value
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {option.emoji} {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Botões */}
+          <div className="flex gap-3 pt-4 border-t border-slate-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 font-medium"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center justify-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              {staff ? 'Salvar Alterações' : 'Cadastrar Staff'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 export const StaffManagerView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'credentialing' | 'deployment' | 'incidents' | 'catering'>('credentialing');
+  const [showStaffModal, setShowStaffModal] = useState(false);
+  const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
   
   // Dados iniciais vazios - usuário adiciona os seus próprios
-  const [staff] = useState<StaffMember[]>([]);
+  const [staff, setStaff] = useState<StaffMember[]>([]);
 
-  const [accessLogs] = useState<AccessLog[]>([]);
+  const [accessLogs, setAccessLogs] = useState<AccessLog[]>([]);
 
-  const [incidents] = useState<Incident[]>([]);
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+
+  // Funções de CRUD
+  const handleSaveStaff = (newStaff: StaffMember) => {
+    if (editingStaff) {
+      setStaff(staff.map(s => s.id === newStaff.id ? newStaff : s));
+    } else {
+      setStaff([...staff, newStaff]);
+      // Adicionar log de acesso
+      setAccessLogs([{
+        id: `log-${Date.now()}`,
+        staffId: newStaff.id,
+        staffName: newStaff.name,
+        gate: 'Sistema',
+        action: 'entry',
+        timestamp: new Date().toLocaleString('pt-BR'),
+        photo: newStaff.photo
+      }, ...accessLogs]);
+    }
+    setShowStaffModal(false);
+    setEditingStaff(null);
+  };
+
+  const handleEditStaff = (member: StaffMember) => {
+    setEditingStaff(member);
+    setShowStaffModal(true);
+  };
+
+  const handleDeleteStaff = (id: string) => {
+    if (confirm('Tem certeza que deseja remover este staff?')) {
+      setStaff(staff.filter(s => s.id !== id));
+    }
+  };
+
+  const handleToggleStatus = (id: string) => {
+    setStaff(staff.map(s => {
+      if (s.id === id) {
+        const newStatus = s.status === 'online' ? 'offline' : s.status === 'offline' ? 'online' : 'online';
+        return {
+          ...s,
+          status: newStatus,
+          checkInTime: newStatus === 'online' ? new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : undefined
+        };
+      }
+      return s;
+    }));
+  };
 
   const getAccessLevelInfo = (level: number) => {
     switch (level) {
@@ -157,71 +477,100 @@ export const StaffManagerView: React.FC = () => {
           <div className="lg:col-span-2 space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-bold text-slate-800">Equipe Cadastrada</h3>
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-2">
+              <button 
+                onClick={() => { setEditingStaff(null); setShowStaffModal(true); }}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-2"
+              >
                 <Plus className="w-4 h-4" />
                 Novo Staff
               </button>
             </div>
 
-            <div className="space-y-3">
-              {staff.map((member) => {
-                const accessInfo = getAccessLevelInfo(member.accessLevel);
-                return (
-                  <div key={member.id} className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {/* Photo + Verification */}
-                        <div className="relative">
-                          <img 
-                            src={member.photo} 
-                            alt={member.name}
-                            className="w-12 h-12 rounded-full border-2 border-slate-200"
-                          />
-                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
-                            <CheckCircle2 className="w-2.5 h-2.5 text-white" />
+            {staff.length === 0 ? (
+              <div className="bg-white p-8 rounded-lg border border-slate-200 text-center">
+                <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                <h4 className="text-lg font-semibold text-slate-700 mb-2">Nenhum staff cadastrado</h4>
+                <p className="text-slate-500 mb-4">Comece adicionando membros da sua equipe</p>
+                <button 
+                  onClick={() => { setEditingStaff(null); setShowStaffModal(true); }}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 inline-flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Cadastrar Primeiro Staff
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {staff.map((member) => {
+                  const accessInfo = getAccessLevelInfo(member.accessLevel);
+                  return (
+                    <div key={member.id} className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {/* Photo + Verification */}
+                          <div className="relative">
+                            <img 
+                              src={member.photo} 
+                              alt={member.name}
+                              className="w-12 h-12 rounded-full border-2 border-slate-200"
+                            />
+                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                              <CheckCircle2 className="w-2.5 h-2.5 text-white" />
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-semibold text-slate-800">{member.name}</h4>
+                            <p className="text-sm text-slate-500">{member.role} • {member.document}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className={`text-xs px-2 py-1 rounded-full text-white font-bold ${accessInfo.color}`}>
+                                Nível {member.accessLevel} - {accessInfo.name}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                        
-                        <div>
-                          <h4 className="font-semibold text-slate-800">{member.name}</h4>
-                          <p className="text-sm text-slate-500">{member.role} • {member.document}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className={`text-xs px-2 py-1 rounded-full text-white font-bold ${accessInfo.color}`}>
-                              Nível {member.accessLevel} - {accessInfo.name}
-                            </span>
-                          </div>
+
+                        <div className="text-right">
+                          <button 
+                            onClick={() => handleToggleStatus(member.id)}
+                            className={`text-sm font-medium ${getStatusColor(member.status)} cursor-pointer hover:opacity-80`}
+                          >
+                            {member.status === 'online' ? '🟢 Online' : 
+                             member.status === 'break' ? '🟡 Intervalo' : '⚫ Offline'}
+                          </button>
+                          <p className="text-xs text-slate-500">{member.post || 'Sem posto'}</p>
+                          {member.checkInTime && (
+                            <p className="text-xs text-slate-400">Check-in: {member.checkInTime}</p>
+                          )}
                         </div>
                       </div>
 
-                      <div className="text-right">
-                        <div className={`text-sm font-medium ${getStatusColor(member.status)}`}>
-                          {member.status === 'online' ? '🟢 Online' : 
-                           member.status === 'break' ? '🟡 Intervalo' : '⚫ Offline'}
+                      <div className="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center">
+                        <div className="text-xs text-slate-500">
+                          Turno: {member.shift}
                         </div>
-                        <p className="text-xs text-slate-500">{member.post}</p>
-                        {member.checkInTime && (
-                          <p className="text-xs text-slate-400">Check-in: {member.checkInTime}</p>
-                        )}
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => handleEditStaff(member)}
+                            className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 flex items-center gap-1"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                            Editar
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteStaff(member.id)}
+                            className="text-xs px-2 py-1 bg-red-50 text-red-600 rounded hover:bg-red-100 flex items-center gap-1"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            Remover
+                          </button>
+                        </div>
                       </div>
                     </div>
-
-                    <div className="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center">
-                      <div className="text-xs text-slate-500">
-                        Turno: {member.shift}
-                      </div>
-                      <div className="flex gap-2">
-                        <button className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100">
-                          Ver Histórico
-                        </button>
-                        <button className="text-xs px-2 py-1 bg-slate-50 text-slate-600 rounded hover:bg-slate-100">
-                          Editar
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Access Control Panel */}
@@ -523,6 +872,15 @@ export const StaffManagerView: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal de Staff */}
+      {showStaffModal && (
+        <StaffModal
+          staff={editingStaff}
+          onSave={handleSaveStaff}
+          onClose={() => { setShowStaffModal(false); setEditingStaff(null); }}
+        />
       )}
     </div>
   );
