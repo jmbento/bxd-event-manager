@@ -29,16 +29,22 @@ interface ExtendedTransaction {
   invoiceNumber?: string;
 }
 
-// ============ MODALIDADES DE RECURSO (FONTE) ============
-const MODALIDADES_RECURSO = [
-  { id: 'rouanet', label: 'Lei Rouanet', color: 'purple' },
-  { id: 'icms', label: 'ICMS', color: 'blue' },
-  { id: 'funarj', label: 'FUNARJ', color: 'green' },
-  { id: 'pesagro', label: 'PESAGRO', color: 'orange' },
-  { id: 'setur', label: 'SETUR', color: 'teal' },
-  { id: 'patrocinio_direto', label: 'Patrocínio Direto', color: 'pink' },
-  { id: 'recursos_proprios', label: 'Recursos Próprios', color: 'gray' },
+// ============ MODALIDADES DE RECURSO PADRÃO (BASE) ============
+// Tags base que sempre existem - podem ser complementadas por tags personalizadas
+const DEFAULT_TAGS = [
+  { id: 'rouanet', label: 'Lei Rouanet', color: 'purple', isDefault: true },
+  { id: 'icms', label: 'ICMS', color: 'blue', isDefault: true },
+  { id: 'patrocinio_direto', label: 'Patrocínio Direto', color: 'pink', isDefault: true },
+  { id: 'recursos_proprios', label: 'Recursos Próprios', color: 'gray', isDefault: true },
 ];
+
+// Interface para tags customizáveis
+interface CustomTag {
+  id: string;
+  label: string;
+  color: string;
+  isDefault?: boolean;
+}
 
 // ============ CENTROS DE CUSTO ============
 const CENTROS_CUSTO = [
@@ -153,10 +159,9 @@ const CATEGORIES = {
       subcategories: [
         'Lei Rouanet (Federal)',
         'ICMS (Estadual)',
-        'FUNARJ',
-        'PESAGRO',
-        'SETUR',
         'ISS (Municipal)',
+        'Lei de Incentivo Estadual',
+        'Lei de Incentivo Municipal',
         'Outro Incentivo'
       ]
     },
@@ -224,16 +229,27 @@ const CATEGORIES = {
   }))
 };
 
-// Tags para prestação de contas (Modalidades de Recurso)
-const PRESTACAO_CONTAS_TAGS = [
-  { id: 'rouanet', label: 'Lei Rouanet', color: 'purple' },
-  { id: 'icms', label: 'ICMS', color: 'blue' },
-  { id: 'funarj', label: 'FUNARJ', color: 'green' },
-  { id: 'pesagro', label: 'PESAGRO', color: 'orange' },
-  { id: 'setur', label: 'SETUR', color: 'teal' },
-  { id: 'patrocinio_direto', label: 'Patrocínio Direto', color: 'pink' },
-  { id: 'recursos_proprios', label: 'Recursos Próprios', color: 'gray' },
+// Cores disponíveis para tags personalizadas
+const TAG_COLORS = [
+  'blue', 'green', 'purple', 'pink', 'orange', 'teal', 'red', 'yellow', 'indigo', 'cyan'
 ];
+
+const getTagColorClasses = (color: string) => {
+  const colors: Record<string, { bg: string; text: string; border: string }> = {
+    blue: { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300' },
+    green: { bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-300' },
+    purple: { bg: 'bg-purple-100', text: 'text-purple-700', border: 'border-purple-300' },
+    pink: { bg: 'bg-pink-100', text: 'text-pink-700', border: 'border-pink-300' },
+    orange: { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300' },
+    teal: { bg: 'bg-teal-100', text: 'text-teal-700', border: 'border-teal-300' },
+    red: { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300' },
+    yellow: { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300' },
+    indigo: { bg: 'bg-indigo-100', text: 'text-indigo-700', border: 'border-indigo-300' },
+    cyan: { bg: 'bg-cyan-100', text: 'text-cyan-700', border: 'border-cyan-300' },
+    gray: { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' },
+  };
+  return colors[color] || colors.gray;
+};
 
 interface Props {
   financials: FinancialKPI;
@@ -385,18 +401,54 @@ const ImportModal: React.FC<ImportModalProps> = ({ onClose, onImport }) => {
 
 // ============ MODAL DE EDIÇÃO/CRIAÇÃO ============
 
+// Função para formatar valor monetário
+const formatMoneyInput = (value: string): string => {
+  // Remove tudo que não é número
+  let numericValue = value.replace(/\D/g, '');
+  
+  // Se vazio, retorna vazio
+  if (!numericValue) return '';
+  
+  // Converte para número (centavos) e depois para reais
+  const numberValue = parseInt(numericValue, 10) / 100;
+  
+  // Formata como moeda brasileira sem o símbolo
+  return numberValue.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+// Função para converter valor formatado para número
+const parseMoneyValue = (value: string): number => {
+  if (!value) return 0;
+  // Remove pontos de milhar e troca vírgula por ponto
+  const cleaned = value.replace(/\./g, '').replace(',', '.');
+  return parseFloat(cleaned) || 0;
+};
+
 interface TransactionModalProps {
   transaction?: ExtendedTransaction | null;
   onClose: () => void;
   onSave: (transaction: ExtendedTransaction) => void;
+  availableTags: CustomTag[];
 }
 
-const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onClose, onSave }) => {
+const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onClose, onSave, availableTags }) => {
   const isEditing = !!transaction;
   
   const [type, setType] = useState<TransactionType>(transaction?.transactionType || 'saida');
   const [description, setDescription] = useState(transaction?.description || '');
-  const [amount, setAmount] = useState(Math.abs(transaction?.amount || 0).toString());
+  // Inicializa o valor já formatado
+  const [displayAmount, setDisplayAmount] = useState(() => {
+    if (transaction?.amount) {
+      return Math.abs(transaction.amount).toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    }
+    return '';
+  });
   const [date, setDate] = useState(transaction?.date || new Date().toISOString().split('T')[0]);
   const [categoryId, setCategoryId] = useState(transaction?.category || '');
   const [subcategory, setSubcategory] = useState(transaction?.subcategory || '');
@@ -408,10 +460,16 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onClos
   const categories = CATEGORIES[type];
   const selectedCategory = categories.find(c => c.id === categoryId);
 
+  // Handler para input de moeda
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatMoneyInput(e.target.value);
+    setDisplayAmount(formatted);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const amountValue = parseFloat(amount) || 0;
+    const amountValue = parseMoneyValue(displayAmount);
     const finalAmount = type === 'entrada' ? Math.abs(amountValue) : -Math.abs(amountValue);
     
     const newTransaction: ExtendedTransaction = {
@@ -489,16 +547,19 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onClos
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Valor (R$)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-semibold"
-                placeholder="0,00"
-                required
-              />
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-semibold">R$</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={displayAmount}
+                  onChange={handleAmountChange}
+                  className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-semibold text-right"
+                  placeholder="0,00"
+                  required
+                />
+              </div>
+              <p className="text-xs text-slate-500 mt-1">Digite apenas números (ex: 15000 = 150,00)</p>
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Data</label>
@@ -577,22 +638,30 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onClos
             <p className="text-xs text-slate-500 mb-3">
               Marque para incluir nos relatórios de contrapartida
             </p>
-            <div className="flex flex-wrap gap-2">
-              {PRESTACAO_CONTAS_TAGS.map((tag) => (
-                <button
-                  key={tag.id}
-                  type="button"
-                  onClick={() => toggleTag(tag.id)}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${
-                    tags.includes(tag.id)
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  {tag.label}
-                </button>
-              ))}
-            </div>
+            {availableTags.length === 0 ? (
+              <p className="text-sm text-slate-400 italic">Nenhuma tag criada. Crie tags no painel principal.</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {availableTags.map((tag) => {
+                  const colorClasses = getTagColorClasses(tag.color);
+                  const isSelected = tags.includes(tag.id);
+                  return (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => toggleTag(tag.id)}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition border ${
+                        isSelected
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : `${colorClasses.bg} ${colorClasses.text} ${colorClasses.border}`
+                      }`}
+                    >
+                      {tag.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Informações Adicionais */}
@@ -658,11 +727,144 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onClos
   );
 };
 
+// ============ MODAL DE GERENCIAMENTO DE TAGS ============
+
+interface TagManagerModalProps {
+  tags: CustomTag[];
+  onClose: () => void;
+  onAddTag: (label: string, color: string) => void;
+  onDeleteTag: (tagId: string) => void;
+}
+
+const TagManagerModal: React.FC<TagManagerModalProps> = ({ tags, onClose, onAddTag, onDeleteTag }) => {
+  const [newTagLabel, setNewTagLabel] = useState('');
+  const [newTagColor, setNewTagColor] = useState('blue');
+
+  const handleAddTag = () => {
+    if (!newTagLabel.trim()) return;
+    onAddTag(newTagLabel.trim(), newTagColor);
+    setNewTagLabel('');
+    setNewTagColor('blue');
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-slate-200 p-4 flex justify-between items-center">
+          <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <Tag className="w-5 h-5 text-purple-600" />
+            Gerenciar Tags
+          </h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600" title="Fechar">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Criar nova tag */}
+          <div className="bg-slate-50 p-4 rounded-lg">
+            <h4 className="font-semibold text-slate-800 mb-3">Criar Nova Tag</h4>
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={newTagLabel}
+                onChange={(e) => setNewTagLabel(e.target.value)}
+                placeholder="Nome da tag (ex: FUNARJ, SETUR...)"
+                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
+              />
+              <select
+                value={newTagColor}
+                onChange={(e) => setNewTagColor(e.target.value)}
+                className="px-3 py-2 border border-slate-300 rounded-lg"
+              >
+                {TAG_COLORS.map(color => (
+                  <option key={color} value={color}>{color}</option>
+                ))}
+              </select>
+              <button
+                onClick={handleAddTag}
+                disabled={!newTagLabel.trim()}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-slate-300"
+              >
+                <Plus className="w-5 h-5" />
+              </button>
+            </div>
+            
+            {/* Preview da tag */}
+            {newTagLabel && (
+              <div className="mt-3">
+                <span className="text-xs text-slate-500">Preview: </span>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getTagColorClasses(newTagColor).bg} ${getTagColorClasses(newTagColor).text}`}>
+                  {newTagLabel}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Lista de tags existentes */}
+          <div>
+            <h4 className="font-semibold text-slate-800 mb-3">Tags Existentes ({tags.length})</h4>
+            {tags.length === 0 ? (
+              <p className="text-slate-500 text-center py-4">Nenhuma tag criada ainda.</p>
+            ) : (
+              <div className="space-y-2">
+                {tags.map(tag => {
+                  const colorClasses = getTagColorClasses(tag.color);
+                  return (
+                    <div 
+                      key={tag.id}
+                      className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${colorClasses.bg} ${colorClasses.text}`}>
+                          {tag.label}
+                        </span>
+                        {tag.isDefault && (
+                          <span className="text-xs text-slate-400">(padrão)</span>
+                        )}
+                      </div>
+                      {!tag.isDefault && (
+                        <button
+                          onClick={() => onDeleteTag(tag.id)}
+                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                          title="Excluir tag"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>💡 Dica:</strong> Crie tags para cada fonte de recurso ou projeto específico do seu evento. 
+              Exemplo: FUNARJ, PESAGRO, SETUR, Patrocínio X, etc.
+            </p>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 font-medium"
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ============ COMPONENTE PRINCIPAL ============
 
 export const FinanceViewSimple: React.FC<Props> = ({ financials, recentTransactions }) => {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [showTagManager, setShowTagManager] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<ExtendedTransaction | null>(null);
   const [transactions, setTransactions] = useState<ExtendedTransaction[]>(
     recentTransactions.map(t => ({
@@ -671,6 +873,24 @@ export const FinanceViewSimple: React.FC<Props> = ({ financials, recentTransacti
       tags: [],
     }))
   );
+  
+  // Tags personalizáveis - inicia com as default
+  const [customTags, setCustomTags] = useState<CustomTag[]>(() => {
+    const saved = localStorage.getItem('finance_custom_tags');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [...DEFAULT_TAGS];
+      }
+    }
+    return [...DEFAULT_TAGS];
+  });
+  
+  // Salvar tags no localStorage quando mudar
+  React.useEffect(() => {
+    localStorage.setItem('finance_custom_tags', JSON.stringify(customTags));
+  }, [customTags]);
   
   // Filtros
   const [filterType, setFilterType] = useState<'all' | 'entrada' | 'saida'>('all');
@@ -718,10 +938,32 @@ export const FinanceViewSimple: React.FC<Props> = ({ financials, recentTransacti
       setTransactions(prev => prev.filter(t => t.id !== id));
     }
   };
+  
+  // Gerenciamento de Tags
+  const handleAddTag = (label: string, color: string) => {
+    const newTag: CustomTag = {
+      id: `tag-${Date.now()}`,
+      label,
+      color,
+      isDefault: false,
+    };
+    setCustomTags(prev => [...prev, newTag]);
+  };
+  
+  const handleDeleteTag = (tagId: string) => {
+    const tag = customTags.find(t => t.id === tagId);
+    if (tag?.isDefault) {
+      alert('Tags padrão não podem ser excluídas.');
+      return;
+    }
+    if (confirm('Excluir esta tag? As transações manterão a referência, mas a tag não aparecerá mais.')) {
+      setCustomTags(prev => prev.filter(t => t.id !== tagId));
+    }
+  };
 
   const handleExportByTag = (tagId: string) => {
     const taggedTransactions = transactions.filter(t => t.tags.includes(tagId));
-    const tag = PRESTACAO_CONTAS_TAGS.find(t => t.id === tagId);
+    const tag = customTags.find(t => t.id === tagId);
     
     if (taggedTransactions.length === 0) {
       alert(`Nenhuma transação com a tag "${tag?.label}" encontrada.`);
@@ -811,7 +1053,7 @@ export const FinanceViewSimple: React.FC<Props> = ({ financials, recentTransacti
       {/* Ações Rápidas */}
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-bold text-slate-900 mb-4">Ações Rápidas</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <button 
             onClick={() => { setEditingTransaction(null); setShowTransactionModal(true); }}
             className="p-4 border-2 border-blue-500 bg-blue-50 rounded-lg hover:bg-blue-100 transition text-left"
@@ -834,8 +1076,19 @@ export const FinanceViewSimple: React.FC<Props> = ({ financials, recentTransacti
             <p className="text-sm text-green-700">Excel ou CSV</p>
           </button>
           
+          <button 
+            onClick={() => setShowTagManager(true)}
+            className="p-4 border-2 border-purple-500 bg-purple-50 rounded-lg hover:bg-purple-100 transition text-left"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <Tag className="w-5 h-5 text-purple-700" />
+              <p className="font-semibold text-purple-900">Gerenciar Tags</p>
+            </div>
+            <p className="text-sm text-purple-700">{customTags.length} tags criadas</p>
+          </button>
+          
           <div className="relative group">
-            <button className="w-full p-4 border-2 border-orange-500 bg-orange-50 rounded-lg hover:bg-orange-100 transition text-left">
+            <button className="w-full h-full p-4 border-2 border-orange-500 bg-orange-50 rounded-lg hover:bg-orange-100 transition text-left">
               <div className="flex items-center gap-2 mb-1">
                 <FileText className="w-5 h-5 text-orange-700" />
                 <p className="font-semibold text-orange-900">Prestação de Contas</p>
@@ -845,25 +1098,30 @@ export const FinanceViewSimple: React.FC<Props> = ({ financials, recentTransacti
             
             {/* Dropdown de tags */}
             <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
-              {PRESTACAO_CONTAS_TAGS.map((tag) => {
-                const count = transactions.filter(t => t.tags.includes(tag.id)).length;
-                return (
-                  <button
-                    key={tag.id}
-                    onClick={() => handleExportByTag(tag.id)}
-                    className="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 flex justify-between items-center"
-                  >
-                    <span>{tag.label}</span>
-                    <span className="text-xs bg-slate-100 px-2 py-0.5 rounded-full">{count}</span>
-                  </button>
-                );
-              })}
+              {customTags.length === 0 ? (
+                <p className="px-4 py-3 text-sm text-slate-500">Nenhuma tag criada</p>
+              ) : (
+                customTags.map((tag) => {
+                  const count = transactions.filter(t => t.tags.includes(tag.id)).length;
+                  const colorClasses = getTagColorClasses(tag.color);
+                  return (
+                    <button
+                      key={tag.id}
+                      onClick={() => handleExportByTag(tag.id)}
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 flex justify-between items-center"
+                    >
+                      <span className={`px-2 py-0.5 rounded ${colorClasses.bg} ${colorClasses.text}`}>{tag.label}</span>
+                      <span className="text-xs bg-slate-100 px-2 py-0.5 rounded-full">{count}</span>
+                    </button>
+                  );
+                })
+              )}
             </div>
           </div>
           
-          <button className="p-4 border-2 border-slate-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition text-left">
+          <button className="p-4 border-2 border-slate-200 rounded-lg hover:border-cyan-500 hover:bg-cyan-50 transition text-left">
             <div className="flex items-center gap-2 mb-1">
-              <Download className="w-5 h-5 text-purple-700" />
+              <Download className="w-5 h-5 text-cyan-700" />
               <p className="font-semibold text-slate-900">Exportar Tudo</p>
             </div>
             <p className="text-sm text-slate-500">PDF ou Excel</p>
@@ -908,7 +1166,7 @@ export const FinanceViewSimple: React.FC<Props> = ({ financials, recentTransacti
               className="px-3 py-2 border border-slate-300 rounded-lg text-sm"
             >
               <option value="">Todas as tags</option>
-              {PRESTACAO_CONTAS_TAGS.map(tag => (
+              {customTags.map(tag => (
                 <option key={tag.id} value={tag.id}>{tag.label}</option>
               ))}
             </select>
@@ -952,15 +1210,17 @@ export const FinanceViewSimple: React.FC<Props> = ({ financials, recentTransacti
                     {transaction.tags.length > 0 && (
                       <div className="flex gap-1 mt-1 flex-wrap">
                         {transaction.tags.map(tagId => {
-                          const tag = PRESTACAO_CONTAS_TAGS.find(t => t.id === tagId);
-                          return tag ? (
+                          const tag = customTags.find(t => t.id === tagId);
+                          if (!tag) return null;
+                          const colorClasses = getTagColorClasses(tag.color);
+                          return (
                             <span 
                               key={tagId}
-                              className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full"
+                              className={`text-xs px-2 py-0.5 rounded-full ${colorClasses.bg} ${colorClasses.text}`}
                             >
                               {tag.label}
                             </span>
-                          ) : null;
+                          );
                         })}
                       </div>
                     )}
@@ -1016,6 +1276,16 @@ export const FinanceViewSimple: React.FC<Props> = ({ financials, recentTransacti
           transaction={editingTransaction}
           onClose={() => { setShowTransactionModal(false); setEditingTransaction(null); }}
           onSave={handleSaveTransaction}
+          availableTags={customTags}
+        />
+      )}
+      
+      {showTagManager && (
+        <TagManagerModal
+          tags={customTags}
+          onClose={() => setShowTagManager(false)}
+          onAddTag={handleAddTag}
+          onDeleteTag={handleDeleteTag}
         />
       )}
     </div>
