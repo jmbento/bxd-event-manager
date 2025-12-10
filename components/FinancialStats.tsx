@@ -66,7 +66,7 @@ export const FinancialStats: React.FC<Props> = ({ data }) => {
             style={{ width: `${percentUsed}%` }}
           ></div>
         </div>
-        <p className="text-[10px] text-slate-400 mt-2 text-right">Limite TSE: {formatCurrency(data.spendingLimit)}</p>
+        <p className="text-[10px] text-slate-400 mt-2 text-right">Limite: {formatCurrency(data.spendingLimit)}</p>
       </div>
     </div>
   );
