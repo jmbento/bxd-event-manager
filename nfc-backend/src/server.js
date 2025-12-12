@@ -20,6 +20,9 @@ const transactionRoutes = require('./routes/transaction.routes');
 const accountRoutes = require('./routes/account.routes');
 const reportRoutes = require('./routes/report.routes');
 const emailRoutes = require('./routes/email.routes');
+const subscriptionRoutes = require('./routes/subscription.routes');
+const organizationRoutes = require('./routes/organization.routes');
+const webhookRoutes = require('./routes/webhook.routes');
 
 // Middleware de autenticação
 const { authenticateToken } = require('./middleware/auth.middleware');
@@ -88,6 +91,13 @@ app.use('/api/reports', authenticateToken, reportRoutes);
 
 // Rota de email
 app.use('/api/email', emailRoutes);
+
+// Rotas de assinatura e organizações
+app.use('/api/subscription', subscriptionRoutes);
+app.use('/api/organizations', organizationRoutes);
+
+// Webhook do Stripe (precisa de raw body, então vem antes do json parser normal)
+app.use('/api/webhooks', webhookRoutes);
 
 // =============================================================================
 // TRATAMENTO DE ERROS

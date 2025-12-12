@@ -3,6 +3,9 @@ import { Toaster } from 'react-hot-toast';
 import { Header } from './components/Header';
 import { FinancialStats } from './components/FinancialStats';
 import { LoginView } from './components/LoginView';
+import { PricingPage } from './components/PricingPage';
+import { AuthPage } from './components/AuthPage';
+import { TrialBanner, TrialExpiredOverlay } from './components/TrialBanner';
 import { MODULE_DEFINITIONS, DEFAULT_ENABLED_MODULES } from './config/moduleConfig';
 import type { EventProfile, FinancialKPI, Transaction, ModuleKey, SystemUser } from './types';
 import { 
@@ -14,6 +17,18 @@ import {
   logModuleAccess,
   getUsers
 } from './services/auditService';
+
+// Tipos para o sistema de assinatura
+interface Organization {
+  id: string;
+  name: string;
+  subscription_status: 'trial' | 'active' | 'canceled' | 'expired';
+  subscription_plan: 'starter' | 'pro' | 'enterprise';
+  trial_ends_at: string;
+  max_events: number;
+}
+
+type AppView = 'pricing' | 'auth' | 'app';
 
 // Lazy load dos módulos pesados - usando default export wrapper
 const FinanceViewSimple = lazy(() => import('./components/FinanceViewSimple').then(m => ({ default: m.FinanceViewSimple })));
@@ -40,6 +55,23 @@ const NFCManager = lazy(() => import('./components/NFCModule').then(m => ({ defa
 export default function App() {
   // TODOS os useState DEVEM vir ANTES de qualquer return condicional!
   
+  // Estado da aplicação (pricing -> auth -> app)
+  const [appView, setAppView] = useState<AppView>(() => {
+    // Verificar se já está logado
+    const savedOrg = localStorage.getItem('bxd_organization');
+    const savedUser = localStorage.getItem('bxd_user');
+    if (savedOrg && savedUser) return 'app';
+    return 'pricing';
+  });
+
+  const [selectedPlan, setSelectedPlan] = useState<string>('starter');
+  
+  // Estado da organização
+  const [organization, setOrganization] = useState<Organization | null>(() => {
+    const saved = localStorage.getItem('bxd_organization');
+    return saved ? JSON.parse(saved) : null;
+  });
+
   // Estado de autenticação - agora usando o serviço de auditoria
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     const user = getCurrentUser();
@@ -74,6 +106,49 @@ export default function App() {
       logModuleAccess(currentView as ModuleKey);
     }
   }, [currentView, isAuthenticated]);
+
+  // Calcular dias restantes do trial
+  const getTrialDaysRemaining = (): number => {
+    if (!organization) return 0;
+    if (organization.subscription_status === 'active') return -1; // -1 = não está em trial
+    
+    const trialEnd = new Date(organization.trial_ends_at);
+    const now = new Date();
+    const diffTime = trialEnd.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
+  };
+
+  const trialDaysRemaining = getTrialDaysRemaining();
+  const isTrialExpired = organization?.subscription_status === 'trial' && trialDaysRemaining === 0;
+
+  // Handler quando usuário clica em "Começar Trial" na PricingPage
+  const handleStartTrial = (plan: string) => {
+    setSelectedPlan(plan);
+    setAppView('auth');
+  };
+
+  // Handler quando usuário faz login na PricingPage
+  const handlePricingLogin = () => {
+    setAppView('auth');
+  };
+
+  // Handler de sucesso no AuthPage
+  const handleAuthSuccess = (user: any, org: any) => {
+    // Salvar no localStorage
+    localStorage.setItem('bxd_user', JSON.stringify(user));
+    localStorage.setItem('bxd_organization', JSON.stringify(org));
+    
+    setOrganization(org);
+    setSystemUser(user);
+    setIsAuthenticated(true);
+    setAppView('app');
+  };
+
+  // Handler de upgrade (ir para preços)
+  const handleUpgrade = () => {
+    setAppView('pricing');
+  };
 
   // Handler de login - agora com sistema robusto
   const handleLogin = async (email: string, password: string) => {
@@ -111,7 +186,11 @@ export default function App() {
     await auditLogout();
     setSystemUser(null);
     setIsAuthenticated(false);
+    setOrganization(null);
     setCurrentView('dashboard');
+    localStorage.removeItem('bxd_user');
+    localStorage.removeItem('bxd_organization');
+    setAppView('pricing');
   };
 
   // Verificar permissão antes de navegar para um módulo
@@ -130,7 +209,32 @@ export default function App() {
     }
   };
 
-  // Se não estiver autenticado, mostrar tela de login
+  // ============================================
+  // RENDERIZAÇÃO CONDICIONAL POR VIEW
+  // ============================================
+
+  // 1. Página de Preços (landing)
+  if (appView === 'pricing') {
+    return (
+      <PricingPage 
+        onStartTrial={handleStartTrial}
+        onLogin={handlePricingLogin}
+      />
+    );
+  }
+
+  // 2. Página de Auth (login/registro)
+  if (appView === 'auth') {
+    return (
+      <AuthPage 
+        onSuccess={handleAuthSuccess}
+        initialMode="register"
+        selectedPlan={selectedPlan}
+      />
+    );
+  }
+
+  // 3. Se não estiver autenticado no sistema interno, mostrar login legado
   if (!isAuthenticated) {
     return (
       <LoginView 
@@ -330,8 +434,16 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Overlay de trial expirado */}
+      {isTrialExpired && (
+        <TrialExpiredOverlay 
+          onUpgrade={handleUpgrade}
+          onLogout={handleLogout}
+        />
+      )}
+
       <Header 
-        daysLeft={45} 
+        daysLeft={trialDaysRemaining >= 0 ? trialDaysRemaining : 999} 
         currentView={currentView} 
         onNavigate={handleNavigate} 
         modules={MODULE_DEFINITIONS}
@@ -341,6 +453,17 @@ export default function App() {
       />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Banner de Trial */}
+        {organization?.subscription_status === 'trial' && trialDaysRemaining > 0 && (
+          <div className="mb-6">
+            <TrialBanner 
+              daysRemaining={trialDaysRemaining}
+              planName={organization?.subscription_plan || 'Starter'}
+              onUpgrade={handleUpgrade}
+            />
+          </div>
+        )}
+
         {renderView()}
       </main>
 
