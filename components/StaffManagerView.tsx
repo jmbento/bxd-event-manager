@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { 
   Shield, Users, Camera, MapPin, Clock, AlertTriangle, Phone, QrCode, 
   CheckCircle2, XCircle, Eye, Zap, UserCheck, Mic, FileText, Plus,
-  Navigation, Radio, Utensils, Badge, Lock, Unlock, RotateCcw, X, Save, Trash2, Edit2
+  Navigation, Radio, Utensils, Badge, Lock, Unlock, RotateCcw, X, Save, Trash2, Edit2,
+  Printer, Settings
 } from 'lucide-react';
+import { BadgePrinter } from './BadgePrinter';
 
 interface StaffMember {
   id: string;
@@ -319,6 +321,8 @@ export const StaffManagerView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'credentialing' | 'deployment' | 'incidents' | 'catering'>('credentialing');
   const [showStaffModal, setShowStaffModal] = useState(false);
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
+  const [showBadgePrinter, setShowBadgePrinter] = useState(false);
+  const [printingStaff, setPrintingStaff] = useState<StaffMember | null>(null);
   
   // Dados iniciais vazios - usuário adiciona os seus próprios
   const [staff, setStaff] = useState<StaffMember[]>([]);
@@ -326,6 +330,12 @@ export const StaffManagerView: React.FC = () => {
   const [accessLogs, setAccessLogs] = useState<AccessLog[]>([]);
 
   const [incidents, setIncidents] = useState<Incident[]>([]);
+
+  // Abrir impressora de crachá
+  const handlePrintBadge = (member?: StaffMember) => {
+    setPrintingStaff(member || null);
+    setShowBadgePrinter(true);
+  };
 
   // Funções de CRUD
   const handleSaveStaff = (newStaff: StaffMember) => {
@@ -477,13 +487,23 @@ export const StaffManagerView: React.FC = () => {
           <div className="lg:col-span-2 space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-bold text-slate-800">Equipe Cadastrada</h3>
-              <button 
-                onClick={() => { setEditingStaff(null); setShowStaffModal(true); }}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Novo Staff
-              </button>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => handlePrintBadge()}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 flex items-center gap-2"
+                  title="Configurar e imprimir credenciais"
+                >
+                  <Printer className="w-4 h-4" />
+                  Credenciais
+                </button>
+                <button 
+                  onClick={() => { setEditingStaff(null); setShowStaffModal(true); }}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Novo Staff
+                </button>
+              </div>
             </div>
 
             {staff.length === 0 ? (
@@ -550,6 +570,13 @@ export const StaffManagerView: React.FC = () => {
                           Turno: {member.shift}
                         </div>
                         <div className="flex gap-2">
+                          <button 
+                            onClick={() => handlePrintBadge(member)}
+                            className="text-xs px-2 py-1 bg-purple-50 text-purple-600 rounded hover:bg-purple-100 flex items-center gap-1"
+                            title="Imprimir credencial"
+                          >
+                            <Printer className="w-3 h-3" />
+                          </button>
                           <button 
                             onClick={() => handleEditStaff(member)}
                             className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 flex items-center gap-1"
@@ -880,6 +907,22 @@ export const StaffManagerView: React.FC = () => {
           staff={editingStaff}
           onSave={handleSaveStaff}
           onClose={() => { setShowStaffModal(false); setEditingStaff(null); }}
+        />
+      )}
+
+      {/* Modal de Impressão de Credenciais */}
+      {showBadgePrinter && (
+        <BadgePrinter
+          person={printingStaff ? {
+            id: printingStaff.id,
+            name: printingStaff.name,
+            role: printingStaff.role,
+            company: printingStaff.post,
+            document: printingStaff.document,
+            photo: printingStaff.photo,
+            category: printingStaff.accessLevel === 3 ? 'staff' : printingStaff.accessLevel === 2 ? 'backstage' : 'staff'
+          } : undefined}
+          onClose={() => { setShowBadgePrinter(false); setPrintingStaff(null); }}
         />
       )}
     </div>
