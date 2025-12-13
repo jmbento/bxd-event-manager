@@ -127,7 +127,7 @@ const CENTROS_CUSTO = [
   },
   {
     id: 'midia_divulgacao',
-    label: 'Mídia/Divulgação/Comunicação',
+    label: 'Mídia/Divulgação',
     icon: Megaphone,
     color: 'purple',
     subcategories: [
@@ -604,8 +604,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({ transaction, onClos
                         : 'border-slate-200 text-slate-600 hover:border-slate-300'
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
-                    <span className="font-medium">{cat.label}</span>
+                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    <span className="font-medium truncate text-left">{cat.label}</span>
                   </button>
                 );
               })}
