@@ -84,7 +84,7 @@ router.post('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Erro ao criar organização:', error);
-    res.status(500).json({ error: 'Erro ao criar organização' });
+    res.status(500).json({ error: 'Erro ao criar organização', details: error.message || error });
   }
 });
 

@@ -38,6 +38,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   // Form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [organizationName, setOrganizationName] = useState('');
 
@@ -48,6 +49,19 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
     try {
       if (mode === 'register') {
+        // Validar confirmação de senha
+        if (password !== confirmPassword) {
+          setError('As senhas não coincidem');
+          setLoading(false);
+          return;
+        }
+
+        if (password.length < 6) {
+          setError('A senha deve ter pelo menos 6 caracteres');
+          setLoading(false);
+          return;
+        }
+
         // 1. Criar usuário no Supabase Auth
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
@@ -310,6 +324,33 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </button>
               </div>
             </div>
+
+            {mode === 'register' && (
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Confirmar Senha
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    placeholder="Digite a senha novamente"
+                    className={`w-full pl-12 pr-4 py-3 bg-slate-800 border rounded-xl text-white placeholder:text-slate-500 focus:outline-none transition ${
+                      confirmPassword && password !== confirmPassword 
+                        ? 'border-red-500 focus:border-red-500' 
+                        : 'border-slate-700 focus:border-blue-500'
+                    }`}
+                  />
+                </div>
+                {confirmPassword && password !== confirmPassword && (
+                  <p className="text-red-400 text-sm mt-1">As senhas não coincidem</p>
+                )}
+              </div>
+            )}
 
             {mode === 'login' && (
               <div className="flex justify-end">
