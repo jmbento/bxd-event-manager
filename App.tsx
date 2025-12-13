@@ -57,29 +57,46 @@ export default function App() {
   
   // Estado da aplicação (pricing -> auth -> app)
   const [appView, setAppView] = useState<AppView>(() => {
-    // Verificar se já está logado
-    const savedOrg = localStorage.getItem('bxd_organization');
-    const savedUser = localStorage.getItem('bxd_user');
-    if (savedOrg && savedUser) return 'app';
-    return 'pricing';
+    try {
+      // Verificar se já está logado
+      const savedOrg = localStorage.getItem('bxd_organization');
+      const savedUser = localStorage.getItem('bxd_user');
+      const auditUser = localStorage.getItem('bxd_audit_current_user');
+      if (savedOrg && savedUser && auditUser) return 'app';
+      return 'pricing';
+    } catch {
+      return 'pricing';
+    }
   });
 
   const [selectedPlan, setSelectedPlan] = useState<string>('starter');
   
   // Estado da organização
   const [organization, setOrganization] = useState<Organization | null>(() => {
-    const saved = localStorage.getItem('bxd_organization');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('bxd_organization');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
 
   // Estado de autenticação - agora usando o serviço de auditoria
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    const user = getCurrentUser();
-    return user !== null && user.status === 'active';
+    try {
+      const user = getCurrentUser();
+      return user !== null && user.status === 'active';
+    } catch {
+      return false;
+    }
   });
   
   const [systemUser, setSystemUser] = useState<SystemUser | null>(() => {
-    return getCurrentUser();
+    try {
+      return getCurrentUser();
+    } catch {
+      return null;
+    }
   });
 
   const [currentView, setCurrentView] = useState('dashboard');
@@ -289,6 +306,11 @@ export default function App() {
   const teamMembers: any[] = [];
 
   const renderView = () => {
+    // Calcular dias até o evento
+    const eventDate = profile.startDate ? new Date(profile.startDate) : new Date();
+    const now = new Date();
+    const daysLeft = Math.max(0, Math.ceil((eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+    
     switch(currentView) {
       case 'dashboard':
         return (
