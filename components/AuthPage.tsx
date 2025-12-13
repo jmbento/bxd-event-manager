@@ -16,6 +16,7 @@ import { createClient } from '@supabase/supabase-js';
 // Inicializar Supabase no cliente
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://hzgzobcjdgddtrfzbywg.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6Z3pvYmNqZGdkZHRyZnpieXdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MzgxNDIsImV4cCI6MjA4MDQxNDE0Mn0.wopx2seFG3w4-noREXf6TYuLRkMOZmsNK75-cXwmWk8';
+const apiUrl = apiUrl || 'https://bxd-event-manager-production.up.railway.app';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface AuthPageProps {
@@ -63,7 +64,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
         if (authData.user) {
           // 2. Criar organização via API
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/organizations`, {
+          const response = await fetch(`${apiUrl}/api/organizations`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -94,7 +95,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         if (authData.user) {
           // Buscar organizações do usuário
           const response = await fetch(
-            `${import.meta.env.VITE_API_URL}/api/organizations/user/${authData.user.id}`
+            `${apiUrl}/api/organizations/user/${authData.user.id}`
           );
           const { organizations } = await response.json();
 
