@@ -42,6 +42,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [name, setName] = useState('');
   const [organizationName, setOrganizationName] = useState('');
 
+  // Auto-preencher para testes
+  const fillTestData = () => {
+    const ts = Date.now();
+    setName('Teste Usuario');
+    setEmail(`teste${ts}@teste.com`);
+    setPassword('teste123');
+    setConfirmPassword('teste123');
+    setOrganizationName('Empresa Teste');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -374,6 +384,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </>
               )}
             </button>
+
+            {/* Botão de teste - remover em produção */}
+            {mode === 'register' && (
+              <button
+                type="button"
+                onClick={fillTestData}
+                className="w-full py-2 mt-2 bg-slate-700 text-slate-300 rounded-lg text-sm hover:bg-slate-600 transition"
+              >
+                🧪 Preencher dados de teste
+              </button>
+            )}
           </form>
 
           {/* Toggle Mode */}

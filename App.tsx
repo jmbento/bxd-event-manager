@@ -139,8 +139,36 @@ export default function App() {
     localStorage.setItem('bxd_user', JSON.stringify(user));
     localStorage.setItem('bxd_organization', JSON.stringify(org));
     
+    // Criar SystemUser com permissões completas para o owner
+    const allModules: ModuleKey[] = [
+      'dashboard', 'settings', 'finance', 'agenda', 'staffManager', 'nfc',
+      'crm', 'marketing', 'analytics', 'team', 'planner3d', 'marketingAdvanced',
+      'advancedFinance', 'accounting', 'polls', 'volunteers', 'legal', 'compliance',
+      'ecogestao', 'help'
+    ];
+    
+    const systemUser: SystemUser = {
+      id: user.id,
+      email: user.email,
+      name: user.user_metadata?.name || user.email?.split('@')[0] || 'Usuário',
+      role: 'admin',
+      status: 'active',
+      permissions: {
+        modules: allModules,
+        canInvite: true,
+        canExport: true,
+        canDelete: true,
+        canEditFinance: true,
+      },
+      createdAt: new Date().toISOString(),
+      lastActivity: new Date().toISOString(),
+    };
+    
+    // Salvar como SystemUser para o auditService reconhecer
+    setAuditUser(systemUser);
+    
     setOrganization(org);
-    setSystemUser(user);
+    setSystemUser(systemUser);
     setIsAuthenticated(true);
     setAppView('app');
   };
