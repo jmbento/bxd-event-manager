@@ -1,7 +1,7 @@
 import React, { useState, lazy, Suspense, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
-import { Header } from './components/Header';
-import { FinancialStats } from './components/FinancialStats';
+import { Sidebar } from './components/Sidebar';
+import { DashboardView } from './components/DashboardView';
 import { LoginView } from './components/LoginView';
 import { PricingPage } from './components/PricingPage';
 import { AuthPage } from './components/AuthPage';
@@ -292,17 +292,11 @@ export default function App() {
     switch(currentView) {
       case 'dashboard':
         return (
-          <div className="space-y-6">
-            <FinancialStats data={financials} />
-            <div className="bg-white rounded-lg shadow p-8">
-              <h2 className="text-2xl font-bold text-slate-900 mb-4">
-                📊 Dashboard Principal
-              </h2>
-              <p className="text-slate-600">
-                Clique nos módulos do menu superior para navegar.
-              </p>
-            </div>
-          </div>
+          <DashboardView 
+            profile={profile}
+            organization={organization}
+            daysLeft={daysLeft}
+          />
         );
       
       case 'finance':
@@ -461,7 +455,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-100">
       {/* Overlay de trial expirado */}
       {isTrialExpired && (
         <TrialExpiredOverlay 
@@ -470,29 +464,34 @@ export default function App() {
         />
       )}
 
-      <Header 
-        daysLeft={trialDaysRemaining >= 0 ? trialDaysRemaining : 999} 
-        currentView={currentView} 
-        onNavigate={handleNavigate} 
+      {/* Sidebar */}
+      <Sidebar 
+        currentView={currentView}
+        onNavigate={handleNavigate}
         modules={MODULE_DEFINITIONS}
         enabledModules={DEFAULT_ENABLED_MODULES}
-        onOpenModulePanel={() => setIsModulePanelOpen(true)}
         profile={profile}
+        organization={organization}
+        onLogout={handleLogout}
+        onUpgrade={handleUpgrade}
       />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Banner de Trial */}
-        {organization?.subscription_status === 'trial' && trialDaysRemaining > 0 && (
-          <div className="mb-6">
-            <TrialBanner 
-              daysRemaining={trialDaysRemaining}
-              planName={organization?.subscription_plan || 'Starter'}
-              onUpgrade={handleUpgrade}
-            />
-          </div>
-        )}
+      {/* Main Content - com margin-left para compensar a sidebar */}
+      <main className="ml-64 min-h-screen transition-all duration-300">
+        <div className="p-6">
+          {/* Banner de Trial */}
+          {organization?.subscription_status === 'trial' && trialDaysRemaining > 0 && (
+            <div className="mb-6">
+              <TrialBanner 
+                daysRemaining={trialDaysRemaining}
+                planName={organization?.subscription_plan || 'Starter'}
+                onUpgrade={handleUpgrade}
+              />
+            </div>
+          )}
 
-        {renderView()}
+          {renderView()}
+        </div>
       </main>
 
       <Toaster position="top-right" />
