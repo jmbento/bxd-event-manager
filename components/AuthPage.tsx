@@ -132,7 +132,18 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       }
     } catch (err: any) {
       console.error('Auth error:', err);
-      setError(err.message || 'Ocorreu um erro. Tente novamente.');
+      // Melhorar mensagens de erro
+      let errorMessage = err.message || 'Ocorreu um erro. Tente novamente.';
+      
+      if (errorMessage.includes('Invalid login credentials')) {
+        errorMessage = 'Email ou senha incorretos. Verifique seus dados ou crie uma conta nova.';
+      } else if (errorMessage.includes('Email not confirmed')) {
+        errorMessage = 'Email não confirmado. Verifique sua caixa de entrada.';
+      } else if (errorMessage.includes('User already registered')) {
+        errorMessage = 'Este email já está cadastrado. Tente fazer login.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
