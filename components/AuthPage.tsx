@@ -87,25 +87,35 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         if (authError) throw authError;
 
         if (authData.user) {
-          // 2. Criar organização via API
-          const response = await fetch(`${apiUrl}/api/organizations`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+          // 2. Criar organização diretamente no Supabase
+          const slug = (organizationName || `org-${name}`)
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '');
+
+          const { data: orgData, error: orgError } = await supabase
+            .from('organizations')
+            .insert({
               name: organizationName || `Organização de ${name}`,
-              userId: authData.user.id,
-              userEmail: email
+              slug: `${slug}-${Date.now()}`,
+              owner_id: authData.user.id,
+              subscription_status: 'trial',
+              subscription_plan: 'starter',
+              trial_starts_at: new Date().toISOString(),
+              trial_ends_at: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+              max_events: 1,
+              max_team_members: 3
             })
-          });
+            .select()
+            .single();
 
-          const orgData = await response.json();
-
-          if (!response.ok) {
-            throw new Error(orgData.error || 'Erro ao criar organização');
+          if (orgError) {
+            console.error('Org error:', orgError);
+            throw new Error('Erro ao criar organização: ' + orgError.message);
           }
 
           // Sucesso!
-          onSuccess(authData.user, orgData.organization);
+          onSuccess(authData.user, orgData);
         }
       } else {
         // Login
@@ -117,14 +127,18 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         if (authError) throw authError;
 
         if (authData.user) {
-          // Buscar organizações do usuário
-          const response = await fetch(
-            `${apiUrl}/api/organizations/user/${authData.user.id}`
-          );
-          const { organizations } = await response.json();
+          // Buscar organizações do usuário diretamente no Supabase
+          const { data: organizations, error: orgError } = await supabase
+            .from('organizations')
+            .select('*')
+            .eq('owner_id', authData.user.id)
+            .order('created_at', { ascending: false });
+
+          if (orgError) {
+            console.error('Org fetch error:', orgError);
+          }
 
           // Se tiver apenas uma organização, usar ela
-          // Se tiver várias, poderia mostrar um seletor
           const org = organizations?.[0] || null;
 
           onSuccess(authData.user, org);
