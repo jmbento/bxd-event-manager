@@ -231,6 +231,7 @@ export type ModuleKey =
   | 'polls'
   | 'volunteers'
   | 'team'
+  | 'meetings'
   | 'fleet'
   | 'legal'
   | 'compliance'

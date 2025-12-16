@@ -24,3 +24,17 @@ dist-ssr
 *.sw?
 .vercel
 .env*.local
+
+# Secrets e chaves sensíveis (NUNCA COMMITAR)
+.env
+.env.local
+.env.production
+.env.development
+*.key
+*.pem
+*_SERVICE_ROLE_KEY*
+SUPABASE_SERVICE_ROLE_KEY*
+*secret*
+*SECRET*
+credentials.json
+firebase-adminsdk*.json

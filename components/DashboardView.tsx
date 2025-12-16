@@ -39,25 +39,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   organization,
   daysLeft,
 }) => {
-  // Dados mockados para demonstração (em produção viriam do banco)
+  // Dados reais devem ser buscados do banco ou API
   const metrics = {
-    orcamentoTotal: 150000,
-    orcamentoGasto: 67500,
-    orcamentoRestante: 82500,
-    ticketsVendidos: 1847,
-    metaTickets: 3000,
-    fornecedoresConfirmados: 12,
-    fornecedoresTotal: 18,
-    tarefasConcluidas: 45,
-    tarefasTotal: 68,
-    equipeAtiva: 24,
-    leads: 3421,
+    orcamentoTotal: 0,
+    orcamentoGasto: 0,
+    orcamentoRestante: 0,
+    ticketsVendidos: 0,
+    metaTickets: 0,
+    fornecedoresConfirmados: 0,
+    fornecedoresTotal: 0,
+    tarefasConcluidas: 0,
+    tarefasTotal: 0,
+    equipeAtiva: 0,
+    leads: 0,
   };
 
-  const percentOrcamento = Math.round((metrics.orcamentoGasto / metrics.orcamentoTotal) * 100);
-  const percentTickets = Math.round((metrics.ticketsVendidos / metrics.metaTickets) * 100);
-  const percentTarefas = Math.round((metrics.tarefasConcluidas / metrics.tarefasTotal) * 100);
-  const percentFornecedores = Math.round((metrics.fornecedoresConfirmados / metrics.fornecedoresTotal) * 100);
+  const percentOrcamento = metrics.orcamentoTotal > 0 ? Math.round((metrics.orcamentoGasto / metrics.orcamentoTotal) * 100) : 0;
+  const percentTickets = metrics.metaTickets > 0 ? Math.round((metrics.ticketsVendidos / metrics.metaTickets) * 100) : 0;
+  const percentTarefas = metrics.tarefasTotal > 0 ? Math.round((metrics.tarefasConcluidas / metrics.tarefasTotal) * 100) : 0;
+  const percentFornecedores = metrics.fornecedoresTotal > 0 ? Math.round((metrics.fornecedoresConfirmados / metrics.fornecedoresTotal) * 100) : 0;
 
   // Timeline de atividades recentes
   const recentActivities = [

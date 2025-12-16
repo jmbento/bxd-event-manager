@@ -48,9 +48,11 @@ const ComplianceView = lazy(() => import('./components/ComplianceView').then(m =
 const StaffManagerView = lazy(() => import('./components/StaffManagerView').then(m => ({ default: m.StaffManagerView })));
 const EcoGestaoView = lazy(() => import('./components/EcoGestaoView').then(m => ({ default: m.EcoGestaoView })));
 const SettingsViewSimple = lazy(() => import('./components/SettingsViewSimple').then(m => ({ default: m.SettingsViewSimple })));
+const MeetingView = lazy(() => import('./components/MeetingView').then(m => ({ default: m.MeetingView })));
 const EventProfileView = lazy(() => import('./components/EventProfileView').then(m => ({ default: m.EventProfileView })));
 const HelpView = lazy(() => import('./components/HelpView').then(m => ({ default: m.HelpView })));
 const NFCManager = lazy(() => import('./components/NFCModule').then(m => ({ default: m.NFCManager })));
+const PlanningView = lazy(() => import('./components/PlanningView').then(m => ({ default: m.PlanningView })));
 
 export default function App() {
   // TODOS os useState DEVEM vir ANTES de qualquer return condicional!
@@ -363,6 +365,13 @@ export default function App() {
           </Suspense>
         );
       
+      case 'meetings':
+        return (
+          <Suspense fallback={<div className="p-8 text-center">Carregando Reuniões...</div>}>
+            <MeetingView />
+          </Suspense>
+        );
+      
       case 'canvas':
         return (
           <Suspense fallback={<div className="p-8 text-center">Carregando Spaces 3D...</div>}>
@@ -416,6 +425,13 @@ export default function App() {
         return (
           <Suspense fallback={<div className="p-8 text-center">Carregando Compliance...</div>}>
             <ComplianceView />
+          </Suspense>
+        );
+      
+      case 'planning':
+        return (
+          <Suspense fallback={<div className="p-8 text-center">Carregando Planejamento...</div>}>
+            <PlanningView />
           </Suspense>
         );
       

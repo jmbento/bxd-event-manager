@@ -4,34 +4,12 @@ import { TrendingUp, TrendingDown, Target, Users, Heart, Share2, Eye, MessageCir
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { exportToXLSX } from '../services/exportService';
 
-const performanceData = [
-  { mes: 'Jan', alcance: 12000, engajamento: 850, conversao: 120 },
-  { mes: 'Fev', alcance: 18000, engajamento: 1200, conversao: 180 },
-  { mes: 'Mar', alcance: 25000, engajamento: 1800, conversao: 280 },
-  { mes: 'Abr', alcance: 32000, engajamento: 2400, conversao: 380 },
-  { mes: 'Mai', alcance: 45000, engajamento: 3200, conversao: 520 },
-  { mes: 'Jun', alcance: 58000, engajamento: 4100, conversao: 680 },
-];
 
-const socialMetrics = [
-  { rede: 'Instagram', seguidores: 28500, crescimento: 12.5 },
-  { rede: 'Facebook', seguidores: 15200, crescimento: 8.3 },
-  { rede: 'TikTok', seguidores: 42100, crescimento: 25.8 },
-  { rede: 'YouTube', seguidores: 8900, crescimento: 5.2 },
-];
-
-const metasData = [
-  { categoria: 'Doações', meta: 100000, realizado: 78500, color: '#10b981' },
-  { categoria: 'Voluntários', meta: 500, realizado: 420, color: '#3b82f6' },
-  { categoria: 'Eventos', meta: 50, realizado: 38, color: '#f59e0b' },
-  { categoria: 'Alcance Digital', meta: 100000, realizado: 58000, color: '#8b5cf6' },
-];
-
-const sentimentData = [
-  { name: 'Positivo', value: 65, color: '#10b981' },
-  { name: 'Neutro', value: 25, color: '#6b7280' },
-  { name: 'Negativo', value: 10, color: '#ef4444' },
-];
+// Dados reais devem ser buscados de API ou integrados via configuração
+const performanceData: any[] = [];
+const socialMetrics: any[] = [];
+const metasData: any[] = [];
+const sentimentData: any[] = [];
 
 export const AnalyticsView: React.FC = () => {
   // Memoize expensive calculations

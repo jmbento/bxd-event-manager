@@ -1,4 +1,4 @@
-import { LayoutDashboard, BarChart3, UserCircle2, Map, Trello, Sparkles, DollarSign, Calculator, Vote, UserPlus, Users, Truck, Scale, Shield, Settings as SettingsIcon, UserCircle, SquareStack, Leaf, HelpCircle } from 'lucide-react';
+import { LayoutDashboard, BarChart3, UserCircle2, Map, Trello, Sparkles, DollarSign, Calculator, Vote, UserPlus, Users, Truck, Scale, Shield, Settings as SettingsIcon, UserCircle, SquareStack, Leaf, HelpCircle, Mic } from 'lucide-react';
 import type { ModuleDefinition, ModuleKey, ModulePlan, ModuleStateMap } from '../types';
 
 const moduleDefinitions: ModuleDefinition[] = [
@@ -121,6 +121,18 @@ const moduleDefinitions: ModuleDefinition[] = [
     description: 'Time interno com status, contatos e atribuições.',
     icon: Users,
     plan: 'Starter',
+    defaultEnabled: true,
+    showInNavigation: true,
+    gateable: true,
+  },
+  
+  // Reuniões
+  {
+    key: 'meetings',
+    label: 'Reuniões',
+    description: 'Gravação de áudio, transcrição automática e geração de atas estratégicas com IA.',
+    icon: Mic,
+    plan: 'Growth',
     defaultEnabled: true,
     showInNavigation: true,
     gateable: true,

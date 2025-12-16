@@ -408,8 +408,8 @@ export const BadgePrinter: React.FC<BadgePrinterProps> = ({ person, onClose }) =
             </p>
           </div>
           {onClose && (
-            <button onClick={onClose} className="text-white/80 hover:text-white">
-              <X className="w-6 h-6" />
+            <button onClick={onClose} className="text-white/80 hover:text-white" aria-label="Fechar modal de impressão">
+              <X className="w-6 h-6" aria-hidden="true" />
             </button>
           )}
         </div>
@@ -426,8 +426,9 @@ export const BadgePrinter: React.FC<BadgePrinterProps> = ({ person, onClose }) =
                     setShowTemplateEditor(true);
                   }}
                   className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
+                  aria-label="Criar novo template"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4" aria-hidden="true" />
                   Novo Template
                 </button>
               </div>
@@ -477,8 +478,9 @@ export const BadgePrinter: React.FC<BadgePrinterProps> = ({ person, onClose }) =
                                 setShowTemplateEditor(true);
                               }}
                               className="p-2 text-slate-400 hover:text-blue-600 transition"
+                              aria-label="Editar template"
                             >
-                              <Settings className="w-4 h-4" />
+                              <Settings className="w-4 h-4" aria-hidden="true" />
                             </button>
                             <button
                               onClick={(e) => {
@@ -486,8 +488,9 @@ export const BadgePrinter: React.FC<BadgePrinterProps> = ({ person, onClose }) =
                                 handleDeleteTemplate(template.id);
                               }}
                               className="p-2 text-slate-400 hover:text-red-600 transition"
+                              aria-label="Excluir template"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-4 h-4" aria-hidden="true" />
                             </button>
                           </div>
                         </div>
@@ -514,6 +517,7 @@ export const BadgePrinter: React.FC<BadgePrinterProps> = ({ person, onClose }) =
                         setShowTemplateEditor(true);
                       }}
                       className="px-3 py-1.5 text-xs bg-slate-100 text-slate-600 rounded-full hover:bg-slate-200 transition"
+                      aria-label={`Selecionar tamanho ${size.name}`}
                     >
                       {size.name}
                     </button>
@@ -538,15 +542,17 @@ export const BadgePrinter: React.FC<BadgePrinterProps> = ({ person, onClose }) =
                       onClick={handlePrint}
                       disabled={!person}
                       className="flex-1 flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      aria-label="Imprimir credencial"
                     >
-                      <Printer className="w-5 h-5" />
+                      <Printer className="w-5 h-5" aria-hidden="true" />
                       Imprimir
                     </button>
                     <button
                       className="px-4 py-3 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition"
                       title="Baixar como imagem"
+                      aria-label="Baixar como imagem"
                     >
-                      <Download className="w-5 h-5" />
+                      <Download className="w-5 h-5" aria-hidden="true" />
                     </button>
                   </div>
 
@@ -574,8 +580,8 @@ export const BadgePrinter: React.FC<BadgePrinterProps> = ({ person, onClose }) =
                 <h3 className="text-lg font-bold text-slate-800">
                   {editingTemplate ? 'Editar Template' : 'Novo Template'}
                 </h3>
-                <button onClick={() => setShowTemplateEditor(false)} className="text-slate-400 hover:text-slate-600">
-                  <X className="w-5 h-5" />
+                <button onClick={() => setShowTemplateEditor(false)} className="text-slate-400 hover:text-slate-600" aria-label="Fechar editor de template">
+                  <X className="w-5 h-5" aria-hidden="true" />
                 </button>
               </div>
 
@@ -748,8 +754,9 @@ export const BadgePrinter: React.FC<BadgePrinterProps> = ({ person, onClose }) =
                             });
                           }}
                           className="text-red-400 hover:text-red-600"
+                          aria-label={`Remover campo ${field.label}`}
                         >
-                          <X className="w-4 h-4" />
+                          <X className="w-4 h-4" aria-hidden="true" />
                         </button>
                       </div>
                     ))}
