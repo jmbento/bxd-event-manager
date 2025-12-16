@@ -86,6 +86,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
         if (authError) throw authError;
 
+        // Verificar se precisa confirmar email
+        if (authData.user && !authData.session) {
+          setError('');
+          setLoading(false);
+          alert('✅ Conta criada com sucesso!\n\nVerifique seu email para confirmar o cadastro e fazer login.');
+          setIsLogin(true); // Volta para tela de login
+          return;
+        }
+
         if (authData.user) {
           // 2. Criar organização diretamente no Supabase
           const slug = (organizationName || `org-${name}`)
