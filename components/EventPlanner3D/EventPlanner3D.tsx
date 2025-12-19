@@ -107,8 +107,6 @@ export const EventPlanner3D: React.FC = () => {
                         💡 Este módulo será liberado em breve com todos os recursos listados acima
                     </p>
                 </div>
-                    </p>
-                </div>
             </div>
         </div>
     );
