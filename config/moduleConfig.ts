@@ -1,4 +1,4 @@
-import { LayoutDashboard, BarChart3, UserCircle2, Map, Trello, Sparkles, DollarSign, Calculator, Vote, UserPlus, Users, Truck, Scale, Shield, Settings as SettingsIcon, UserCircle, SquareStack, Leaf, HelpCircle, Mic } from 'lucide-react';
+import { LayoutDashboard, BarChart3, UserCircle2, Map, Trello, Sparkles, DollarSign, Calculator, Vote, UserPlus, Users, Truck, Scale, Shield, Settings as SettingsIcon, UserCircle, SquareStack, Leaf, HelpCircle, Mic, Video } from 'lucide-react';
 import type { ModuleDefinition, ModuleKey, ModulePlan, ModuleStateMap } from '../types';
 
 const moduleDefinitions: ModuleDefinition[] = [
@@ -88,11 +88,11 @@ const moduleDefinitions: ModuleDefinition[] = [
     gateable: true,
   },
   
-  // 7. Marketing - Operação criativa
+  // 7. Materiais & Infraestrutura - Gestão de impressos e instalações
   {
     key: 'marketing',
-    label: 'Marketing',
-    description: 'Quadro Kanban da operação criativa integrada ao financeiro.',
+    label: 'Materiais & Infra',
+    description: 'Gestão de impressos, gráfica e instalações do evento.',
     icon: Trello,
     plan: 'Starter',
     defaultEnabled: true,
@@ -100,11 +100,11 @@ const moduleDefinitions: ModuleDefinition[] = [
     gateable: true,
   },
   
-  // 8. Analytics - Métricas e relatórios
+  // 8. Analytics - Métricas de marketing
   {
     key: 'analytics',
     label: 'Analytics',
-    description: 'Painéis de métricas, alcance e engajamento.',
+    description: 'Monitore resultados do time de marketing e integrações de redes sociais.',
     icon: BarChart3,
     plan: 'Growth',
     defaultEnabled: true,
@@ -126,12 +126,36 @@ const moduleDefinitions: ModuleDefinition[] = [
     gateable: true,
   },
   
-  // Reuniões
+  // Reuniões por Videoconferência
   {
     key: 'meetings',
     label: 'Reuniões',
-    description: 'Gravação de áudio, transcrição automática e geração de atas estratégicas com IA.',
+    description: 'Videoconferências integradas com Google Meet, Zoom, Teams e envio via WhatsApp.',
+    icon: Video,
+    plan: 'Growth',
+    defaultEnabled: true,
+    showInNavigation: true,
+    gateable: true,
+  },
+  
+  // Planejamento com Reuniões
+  {
+    key: 'planning',
+    label: 'Planejamento',
+    description: 'Reuniões gravadas com IA, atas automáticas e gestão de tarefas.',
     icon: Mic,
+    plan: 'Growth',
+    defaultEnabled: true,
+    showInNavigation: true,
+    gateable: true,
+  },
+  
+  // Planejador 3D
+  {
+    key: 'planner3d',
+    label: 'Planejador 3D',
+    description: 'Visualização 3D de layouts com IA, biblioteca de objetos e renders profissionais.',
+    icon: SquareStack,
     plan: 'Growth',
     defaultEnabled: true,
     showInNavigation: true,

@@ -4,6 +4,7 @@ import { DollarSign, TrendingUp, FileText, CheckCircle, AlertTriangle, Download,
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { exportToXLSX } from '../services/exportService';
 import { notifyError, notifySuccess } from '../services/notificationService';
+import { PageBanner } from './PageBanner';
 
 
 // Tipos de receitas e despesas reais de evento
@@ -15,31 +16,39 @@ interface Receita {
   tipo: 'venda' | 'patrocinio' | 'bar' | 'outro';
 }
 
-const receitas: Receita[] = [
-  { id: '1', origem: 'Bar', valor: 12000, data: '2025-11-25', tipo: 'bar' },
-  { id: '2', origem: 'Patrocínio', valor: 50000, data: '2025-11-24', tipo: 'patrocinio' },
-  { id: '3', origem: 'Ingressos', valor: 80000, data: '2025-11-26', tipo: 'venda' },
-  { id: '4', origem: 'Food Truck', valor: 7000, data: '2025-11-23', tipo: 'outro' },
-];
+// DADOS VAZIOS - Usuário adiciona suas próprias receitas
+const receitasIniciais: Receita[] = [];
 
-const receitasMensais = [
-  { mes: 'Jul', valor: 18000 },
-  { mes: 'Ago', valor: 25000 },
-  { mes: 'Set', valor: 32000 },
-  { mes: 'Out', valor: 45000 },
-  { mes: 'Nov', valor: 58000 },
-];
+// Dados mensais calculados dinamicamente das receitas
+const calcularReceitasMensais = (receitas: Receita[]) => {
+  const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const receitasPorMes: { [key: string]: number } = {};
+  
+  receitas.forEach(r => {
+    const mesIndex = new Date(r.data).getMonth();
+    const mesNome = meses[mesIndex];
+    receitasPorMes[mesNome] = (receitasPorMes[mesNome] || 0) + r.valor;
+  });
+  
+  return meses.map(mes => ({
+    mes,
+    valor: receitasPorMes[mes] || 0
+  })).filter(item => item.valor > 0);
+};
 
-const expenseCategories = [
-  { categoria: 'Pessoal', valor: 150000, color: '#3b82f6' },
-  { categoria: 'Marketing', valor: 125000, color: '#8b5cf6' },
-  { categoria: 'Logística', valor: 80000, color: '#f59e0b' },
-  { categoria: 'Bar', valor: 40000, color: '#10b981' },
-  { categoria: 'Estrutura', valor: 60000, color: '#6366f1' },
+// Categorias de despesas vazias - calculadas das transações
+const categoriasVazias = [
+  { categoria: 'Pessoal', valor: 0, color: '#3b82f6' },
+  { categoria: 'Marketing', valor: 0, color: '#8b5cf6' },
+  { categoria: 'Logística', valor: 0, color: '#f59e0b' },
+  { categoria: 'Bar', valor: 0, color: '#10b981' },
+  { categoria: 'Estrutura', valor: 0, color: '#6366f1' },
 ];
 
 
 export const AdvancedFinanceView: React.FC = () => {
+  const [receitas, setReceitas] = useState<Receita[]>(receitasIniciais);
+  const [expenseCategories] = useState(categoriasVazias);
   const [showModal, setShowModal] = useState(false);
   const [novaReceita, setNovaReceita] = useState({
     origem: '',
@@ -49,6 +58,7 @@ export const AdvancedFinanceView: React.FC = () => {
     comprovante: ''
   });
 
+  const receitasMensais = calcularReceitasMensais(receitas);
   const totalReceitas = receitas.reduce((sum, r) => sum + r.valor, 0);
   const totalDespesas = expenseCategories.reduce((sum, c) => sum + c.valor, 0);
 
@@ -73,11 +83,21 @@ export const AdvancedFinanceView: React.FC = () => {
   const handleSubmitReceita = (e: React.FormEvent) => {
     e.preventDefault();
     const valor = parseFloat(novaReceita.valor);
-    if (!novaReceita.origem || valor <= 0) {
-      notifyError('Preencha todos os campos e informe um valor válido.');
+    if (!novaReceita.origem || valor <= 0 || !novaReceita.data) {
+      notifyError('Preencha todos os campos obrigatórios e informe um valor válido.');
       return;
     }
-    notifySuccess(`Receita registrada: ${novaReceita.origem} no valor de R$ ${valor.toFixed(2)}.`);
+    
+    const novaReceitaObj: Receita = {
+      id: `receita-${Date.now()}`,
+      origem: novaReceita.origem,
+      valor: valor,
+      data: novaReceita.data,
+      tipo: novaReceita.tipo
+    };
+    
+    setReceitas([novaReceitaObj, ...receitas]);
+    notifySuccess(`Receita registrada: ${novaReceita.origem} no valor de R$ ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`);
     setNovaReceita({ origem: '', valor: '', data: '', tipo: 'venda', comprovante: '' });
     setShowModal(false);
   };
@@ -113,6 +133,8 @@ export const AdvancedFinanceView: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <PageBanner pageKey="advanced-finance" />
+      
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h2 className="text-2xl font-bold text-slate-800">Financeiro Avançado</h2>
         <div className="flex gap-2">
@@ -137,22 +159,38 @@ export const AdvancedFinanceView: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white">
           <DollarSign className="w-8 h-8 mb-2 opacity-80" />
-          <p className="text-3xl font-bold">R$ {(totalReceitas / 1000).toFixed(0)}K</p>
+          <p className="text-3xl font-bold">
+            {totalReceitas > 0 ? `R$ ${(totalReceitas / 1000).toFixed(0)}K` : 'R$ 0'}
+          </p>
           <p className="text-sm opacity-90 mt-1">Receita Total</p>
+          {totalReceitas === 0 && (
+            <p className="text-xs mt-2 bg-white/20 px-2 py-1 rounded">Adicione receitas</p>
+          )}
         </div>
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white">
           <TrendingUp className="w-8 h-8 mb-2 opacity-80" />
-          <p className="text-3xl font-bold">R$ {(totalDespesas / 1000).toFixed(0)}K</p>
+          <p className="text-3xl font-bold">
+            {totalDespesas > 0 ? `R$ ${(totalDespesas / 1000).toFixed(0)}K` : 'R$ 0'}
+          </p>
           <p className="text-sm opacity-90 mt-1">Despesas Totais</p>
+          {totalDespesas === 0 && (
+            <p className="text-xs mt-2 bg-white/20 px-2 py-1 rounded">Use Controle Financeiro</p>
+          )}
         </div>
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white">
           <CreditCard className="w-8 h-8 mb-2 opacity-80" />
-          <p className="text-3xl font-bold">5</p>
+          <p className="text-3xl font-bold">0</p>
           <p className="text-sm opacity-90 mt-1">Fornecedores Pagos</p>
+          <p className="text-xs mt-2 bg-white/20 px-2 py-1 rounded">Em breve</p>
         </div>
         <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl p-6 text-white">
           <FileText className="w-8 h-8 mb-2 opacity-80" />
-          <p className="text-3xl font-bold">{((totalDespesas / (totalReceitas + totalDespesas)) * 100).toFixed(0)}%</p>
+          <p className="text-3xl font-bold">
+            {totalReceitas + totalDespesas > 0 
+              ? `${((totalDespesas / (totalReceitas + totalDespesas)) * 100).toFixed(0)}%`
+              : '0%'
+            }
+          </p>
           <p className="text-sm opacity-90 mt-1">% Orçamento Utilizado</p>
         </div>
       </div>
@@ -162,39 +200,59 @@ export const AdvancedFinanceView: React.FC = () => {
         {/* Evolução de Receitas */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
           <h3 className="text-lg font-bold text-slate-800 mb-4">Evolução de Receitas</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={receitasMensais}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="mes" stroke="#64748b" />
-              <YAxis stroke="#64748b" />
-              <Tooltip formatter={(value) => `R$ ${value.toLocaleString()}`} />
-              <Bar dataKey="valor" fill="#10b981" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          {receitasMensais.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={receitasMensais}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="mes" stroke="#64748b" />
+                <YAxis stroke="#64748b" />
+                <Tooltip formatter={(value) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
+                <Bar dataKey="valor" fill="#10b981" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[250px] flex items-center justify-center text-slate-400">
+              <div className="text-center">
+                <DollarSign className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">Nenhuma receita registrada</p>
+                <p className="text-xs mt-1">Adicione receitas para ver o gráfico</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Distribuição de Despesas */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
           <h3 className="text-lg font-bold text-slate-800 mb-4">Distribuição de Despesas</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={expenseCategories}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ categoria, percent }) => `${categoria} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="valor"
-              >
-                {expenseCategories.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => `R$ ${value.toLocaleString()}`} />
-            </PieChart>
-          </ResponsiveContainer>
+          {totalDespesas > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={expenseCategories.filter(c => c.valor > 0)}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ categoria, percent }) => `${categoria} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="valor"
+                >
+                  {expenseCategories.filter(c => c.valor > 0).map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[250px] flex items-center justify-center text-slate-400">
+              <div className="text-center">
+                <TrendingUp className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">Nenhuma despesa registrada</p>
+                <p className="text-xs mt-1">Use o Controle Financeiro para adicionar</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -205,27 +263,75 @@ export const AdvancedFinanceView: React.FC = () => {
             <CheckCircle className="w-5 h-5 text-emerald-600" />
             Reconciliação Bancária
           </h3>
-          <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">Reconciliar Tudo</button>
+          <span className="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded">Em breve</span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-            <p className="text-sm text-emerald-700 font-medium mb-1">Reconciliadas</p>
-            <p className="text-2xl font-bold text-emerald-700">158</p>
-            <p className="text-xs text-emerald-600 mt-1">R$ 342.500,00</p>
+          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <p className="text-sm text-slate-600 font-medium mb-1">Reconciliadas</p>
+            <p className="text-2xl font-bold text-slate-400">0</p>
+            <p className="text-xs text-slate-400 mt-1">R$ 0,00</p>
           </div>
-          <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-            <p className="text-sm text-amber-700 font-medium mb-1">Pendentes</p>
-            <p className="text-2xl font-bold text-amber-700">12</p>
-            <p className="text-xs text-amber-600 mt-1">R$ 12.500,00</p>
+          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <p className="text-sm text-slate-600 font-medium mb-1">Pendentes</p>
+            <p className="text-2xl font-bold text-slate-400">0</p>
+            <p className="text-xs text-slate-400 mt-1">R$ 0,00</p>
           </div>
-          <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-            <p className="text-sm text-red-700 font-medium mb-1">Divergências</p>
-            <p className="text-2xl font-bold text-red-700">3</p>
-            <p className="text-xs text-red-600 mt-1">R$ 2.100,00</p>
+          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <p className="text-sm text-slate-600 font-medium mb-1">Divergências</p>
+            <p className="text-2xl font-bold text-slate-400">0</p>
+            <p className="text-xs text-slate-400 mt-1">R$ 0,00</p>
           </div>
         </div>
+        <p className="text-xs text-slate-500 mt-4 text-center">
+          Funcionalidade de reconciliação bancária será implementada em breve
+        </p>
       </div>
 
+      {/* Lista de Receitas Registradas */}
+      {receitas.length > 0 && (
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+          <h3 className="text-lg font-bold text-slate-800 mb-4">Receitas Registradas ({receitas.length})</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Data</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Origem</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Tipo</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase">Valor</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {receitas.map((receita) => (
+                  <tr key={receita.id} className="hover:bg-slate-50">
+                    <td className="px-4 py-3 text-sm text-slate-600">
+                      {new Date(receita.data).toLocaleDateString('pt-BR')}
+                    </td>
+                    <td className="px-4 py-3 text-sm font-medium text-slate-900">
+                      {receita.origem}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        receita.tipo === 'venda' ? 'bg-blue-100 text-blue-700' :
+                        receita.tipo === 'patrocinio' ? 'bg-purple-100 text-purple-700' :
+                        receita.tipo === 'bar' ? 'bg-green-100 text-green-700' :
+                        'bg-slate-100 text-slate-700'
+                      }`}>
+                        {receita.tipo === 'venda' ? 'Venda' :
+                         receita.tipo === 'patrocinio' ? 'Patrocínio' :
+                         receita.tipo === 'bar' ? 'Bar' : 'Outro'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm font-bold text-green-700 text-right">
+                      {receita.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
 
       {/* Modal Nova Receita */}

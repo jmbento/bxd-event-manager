@@ -4,6 +4,7 @@ import {
   Calendar, DollarSign, Users, MapPin, BarChart3, FileText, Shield,
   Lightbulb, ExternalLink, Mail, Phone
 } from 'lucide-react';
+import { PageBanner } from './PageBanner';
 
 interface FAQItem {
   question: string;
@@ -87,6 +88,17 @@ export const HelpView: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <PageBanner 
+        title="Ajuda" 
+        subtitle="Suporte e documentação"
+        storageKey="help_banner_images"
+        defaultImages={[
+          'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1200&h=300&fit=crop'
+        ]}
+      />
       {/* Header */}
       <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-8 text-white">
         <div className="flex items-center gap-4 mb-4">

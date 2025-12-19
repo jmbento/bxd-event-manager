@@ -13,6 +13,7 @@ import {
   Layers,
   Palette
 } from 'lucide-react';
+import { PageBanner } from './PageBanner';
 
 interface TemplateStructure {
   id: string;
@@ -114,7 +115,10 @@ export const EventCanvasView: React.FC = () => {
   };
 
   return (
-    <div className="grid grid-cols-[260px_1fr_280px] gap-6 h-[calc(100vh-12rem)]">
+    <div className="space-y-6">
+      <PageBanner pageKey="event-canvas" />
+      
+      <div className="grid grid-cols-[260px_1fr_280px] gap-6 h-[calc(100vh-12rem)]">
       {/* Toolbar */}
       <section className="rounded-3xl border border-slate-200 bg-white p-6 overflow-y-auto">
         <div className="mb-6">

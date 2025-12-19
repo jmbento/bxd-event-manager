@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, ChatSession } from '../types';
 import { askLegalAdvisor } from '../services/geminiService';
 import { Send, Scale, Shield, User, Bot, AlertTriangle, Plus, MessageSquare, History, Menu, Trash2 } from 'lucide-react';
+import { PageBanner } from './PageBanner';
 
 export const LegalAdvisor: React.FC = () => {
   // State for Sessions (History)
@@ -117,6 +118,18 @@ export const LegalAdvisor: React.FC = () => {
   };
 
   return (
+    <>
+      <PageBanner 
+        title="Legal" 
+        subtitle="Consultoria jurídica"
+        storageKey="legal_banner_images"
+        defaultImages={[
+          'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=1200&h=300&fit=crop'
+        ]}
+      />
     <div className="h-[calc(100vh-140px)] flex bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
       
       {/* SIDEBAR - HISTORY */}
@@ -295,5 +308,6 @@ export const LegalAdvisor: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };

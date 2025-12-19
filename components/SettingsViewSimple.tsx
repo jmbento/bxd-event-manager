@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Settings, Save, Calendar, MapPin, Users, Palette, Image, 
   Bell, Shield, Mail, Phone, Globe, Building, Clock, Upload,
-  CheckCircle, X, Plus, Trash2, Edit2, Copy, ExternalLink, Lock
+  CheckCircle, X, Plus, Trash2, Edit2, Copy, ExternalLink, Lock, ChevronLeft, ChevronRight,
+  DollarSign, CreditCard, Ticket, Wine, Home, Info, Image as ImageIcon
 } from 'lucide-react';
 import type { EventProfile } from '../types';
 import { AdminAccessControl } from './AdminAccessControl';
@@ -22,11 +23,78 @@ interface TeamMember {
 }
 
 export const SettingsViewSimple: React.FC<SettingsViewProps> = ({ profile, onSave }) => {
-  const [activeTab, setActiveTab] = useState<'event' | 'team' | 'access' | 'notifications' | 'security'>('event');
+  const [activeTab, setActiveTab] = useState<'event' | 'team' | 'sales' | 'access' | 'notifications' | 'security'>('event');
   const currentUser = getCurrentUser();
   const userIsAdmin = isAdmin();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  
+  // Banner states
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const [showBannerMenu, setShowBannerMenu] = useState(false);
+  const [bannerMenuPosition, setBannerMenuPosition] = useState({ x: 0, y: 0 });
+  
+  const [bannerImages, setBannerImages] = useState<string[]>(() => {
+    const saved = localStorage.getItem('settings_banner_images');
+    if (saved) return JSON.parse(saved);
+    return [
+      'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&h=300&fit=crop',
+      'https://images.unsplash.com/photo-1551434678-e076c223a692?w=1200&h=300&fit=crop',
+      'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=1200&h=300&fit=crop',
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('settings_banner_images', JSON.stringify(bannerImages));
+  }, [bannerImages]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentBannerIndex((prev) => (prev + 1) % bannerImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [bannerImages.length]);
+
+  useEffect(() => {
+    const handleClick = () => setShowBannerMenu(false);
+    if (showBannerMenu) {
+      document.addEventListener('click', handleClick);
+      return () => document.removeEventListener('click', handleClick);
+    }
+  }, [showBannerMenu]);
+
+  const handleBannerRightClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setBannerMenuPosition({ x: e.clientX, y: e.clientY });
+    setShowBannerMenu(true);
+  };
+
+  const handleChangeBannerImage = () => {
+    const url = prompt('Cole a URL da imagem (deixe vazio para Unsplash aleatório):');
+    if (url === null) return;
+    const newUrl = url.trim() || `https://source.unsplash.com/1200x300/?business,${Date.now()}`;
+    const updated = [...bannerImages];
+    updated[currentBannerIndex] = newUrl;
+    setBannerImages(updated);
+    setShowBannerMenu(false);
+  };
+
+  const handleAddBannerImage = () => {
+    const url = prompt('Cole a URL da nova imagem:');
+    if (url && url.trim()) {
+      setBannerImages([...bannerImages, url.trim()]);
+    }
+    setShowBannerMenu(false);
+  };
+
+  const handleRemoveBannerImage = () => {
+    if (bannerImages.length > 1 && confirm('Remover esta imagem?')) {
+      const updated = bannerImages.filter((_, i) => i !== currentBannerIndex);
+      setBannerImages(updated);
+      setCurrentBannerIndex(0);
+    }
+    setShowBannerMenu(false);
+  };
 
   // Estado do perfil do evento
   const [eventData, setEventData] = useState<EventProfile>(profile || {
@@ -50,6 +118,71 @@ export const SettingsViewSimple: React.FC<SettingsViewProps> = ({ profile, onSav
 
   // Link de acesso
   const accessLink = `${window.location.origin}?event=${encodeURIComponent(eventData.eventName || 'novo-evento')}`;
+
+  // Configuração de Vendas
+  interface SalesSource {
+    id: string;
+    name: string;
+    type: 'ingressos' | 'bar' | 'camarote' | 'outro';
+    enabled: boolean;
+    system: 'bxd' | 'sympla' | 'eventbrite' | 'mercadopago' | 'custom';
+    apiKey?: string;
+    apiUrl?: string;
+    customName?: string;
+  }
+
+  const [isFreeEvent, setIsFreeEvent] = useState(false);
+  const [salesSources, setSalesSources] = useState<SalesSource[]>(() => {
+    const saved = localStorage.getItem('event_sales_config');
+    if (saved) return JSON.parse(saved);
+    return [
+      { id: 'ing1', name: 'Ingressos', type: 'ingressos', enabled: false, system: 'bxd' },
+      { id: 'bar1', name: 'Bar', type: 'bar', enabled: false, system: 'bxd' },
+      { id: 'cam1', name: 'Camarote', type: 'camarote', enabled: false, system: 'bxd' },
+      { id: 'est1', name: 'Estacionamento', type: 'outro', enabled: false, system: 'bxd', customName: 'Estacionamento' },
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('event_sales_config', JSON.stringify(salesSources));
+  }, [salesSources]);
+
+  useEffect(() => {
+    localStorage.setItem('event_is_free', JSON.stringify(isFreeEvent));
+  }, [isFreeEvent]);
+
+  const handleAddSalesSource = () => {
+    const customName = prompt('Nome da fonte de receita:');
+    if (!customName) return;
+    
+    const newSource: SalesSource = {
+      id: `custom-${Date.now()}`,
+      name: customName,
+      type: 'outro',
+      enabled: true,
+      system: 'custom',
+      customName
+    };
+    setSalesSources([...salesSources, newSource]);
+  };
+
+  const handleToggleSalesSource = (id: string) => {
+    setSalesSources(prev => prev.map(s => 
+      s.id === id ? { ...s, enabled: !s.enabled } : s
+    ));
+  };
+
+  const handleUpdateSalesSystem = (id: string, system: SalesSource['system'], apiKey?: string, apiUrl?: string) => {
+    setSalesSources(prev => prev.map(s => 
+      s.id === id ? { ...s, system, apiKey, apiUrl } : s
+    ));
+  };
+
+  const handleRemoveSalesSource = (id: string) => {
+    if (confirm('Remover esta fonte de receita?')) {
+      setSalesSources(prev => prev.filter(s => s.id !== id));
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -110,12 +243,84 @@ export const SettingsViewSimple: React.FC<SettingsViewProps> = ({ profile, onSav
 
   return (
     <div className="space-y-6">
+      {/* Banner Carousel */}
+      <div 
+        className="relative w-full h-48 rounded-xl overflow-hidden group cursor-pointer"
+        onContextMenu={handleBannerRightClick}
+      >
+        <img 
+          src={bannerImages[currentBannerIndex]} 
+          alt="Configurações"
+          className="w-full h-full object-cover transition-opacity duration-1000"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+        
+        <button
+          onClick={() => setCurrentBannerIndex((prev) => (prev - 1 + bannerImages.length) % bannerImages.length)}
+          className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+        <button
+          onClick={() => setCurrentBannerIndex((prev) => (prev + 1) % bannerImages.length)}
+          className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <ChevronRight className="w-6 h-6" />
+        </button>
+
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+          {bannerImages.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentBannerIndex(index)}
+              className={`w-2 h-2 rounded-full transition-all ${
+                index === currentBannerIndex ? 'bg-white w-8' : 'bg-white/50'
+              }`}
+            />
+          ))}
+        </div>
+
+        <div className="absolute bottom-6 left-6 text-white">
+          <h3 className="text-2xl font-bold mb-1">Configurações do Evento</h3>
+          <p className="text-sm text-white/90">Personalize seu evento • Clique direito para trocar imagem</p>
+        </div>
+      </div>
+
+      {showBannerMenu && (
+        <div
+          className="fixed bg-white rounded-lg shadow-xl border border-slate-200 py-1 z-50"
+          style={{ top: bannerMenuPosition.y, left: bannerMenuPosition.x }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={handleChangeBannerImage}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-slate-100 flex items-center gap-2"
+          >
+            🖼️ Trocar esta imagem
+          </button>
+          <button
+            onClick={handleAddBannerImage}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-slate-100 flex items-center gap-2"
+          >
+            ➕ Adicionar nova imagem
+          </button>
+          {bannerImages.length > 1 && (
+            <button
+              onClick={handleRemoveBannerImage}
+              className="w-full px-4 py-2 text-left text-sm hover:bg-red-50 text-red-600 flex items-center gap-2"
+            >
+              🗑️ Remover esta imagem
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Settings className="w-8 h-8 text-blue-600" />
           <div>
-            <h2 className="text-2xl font-bold text-slate-800">Configurações do Evento</h2>
+            <h2 className="text-2xl font-bold text-slate-800">Configurações</h2>
             <p className="text-sm text-slate-500">Configure os dados básicos e gerencie sua equipe</p>
           </div>
         </div>
@@ -147,6 +352,7 @@ export const SettingsViewSimple: React.FC<SettingsViewProps> = ({ profile, onSav
       <div className="flex gap-2 border-b border-slate-200 overflow-x-auto">
         {[
           { id: 'event', label: 'Dados do Evento', icon: Calendar },
+          { id: 'sales', label: 'Vendas & Receitas', icon: DollarSign },
           { id: 'team', label: 'Equipe', icon: Users },
           { id: 'access', label: 'Link de Acesso', icon: ExternalLink },
           { id: 'notifications', label: 'Notificações', icon: Bell },
@@ -332,6 +538,182 @@ export const SettingsViewSimple: React.FC<SettingsViewProps> = ({ profile, onSav
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
+        </div>
+      )}
+
+      {/* Tab: Vendas & Receitas */}
+      {activeTab === 'sales' && (
+        <div className="bg-white rounded-lg border border-slate-200 p-6 space-y-6">
+          {/* Evento Gratuito */}
+          <div className="border-b border-slate-200 pb-6">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isFreeEvent}
+                onChange={(e) => setIsFreeEvent(e.target.checked)}
+                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-base font-semibold text-slate-800">Evento Gratuito (sem vendas)</span>
+            </label>
+            
+            {isFreeEvent && (
+              <div className="mt-4 border-2 border-dashed border-slate-300 rounded-lg p-8 text-center bg-slate-50">
+                <div className="flex flex-col items-center gap-2">
+                  <ImageIcon className="w-12 h-12 text-slate-400" />
+                  <p className="text-sm text-slate-600">Adicione uma imagem representativa do evento gratuito</p>
+                  <button className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
+                    Selecionar Imagem
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Fontes de Receita */}
+          {!isFreeEvent && (
+            <>
+              <div>
+                <h3 className="text-lg font-bold text-slate-800 mb-4">Fontes de Receita</h3>
+                <p className="text-sm text-slate-600 mb-4">
+                  Configure as fontes de receita do seu evento e escolha entre usar o sistema BXD Event ou integrar com plataformas de terceiros.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {salesSources.map((source) => (
+                  <div key={source.id} className="border border-slate-200 rounded-lg p-4 bg-white hover:shadow-md transition-shadow">
+                    {/* Cabeçalho do Card */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        {source.type === 'ingressos' && <Ticket className="w-5 h-5 text-blue-600" />}
+                        {source.type === 'bar' && <Wine className="w-5 h-5 text-purple-600" />}
+                        {source.type === 'camarote' && <Home className="w-5 h-5 text-green-600" />}
+                        {source.type === 'outro' && <DollarSign className="w-5 h-5 text-orange-600" />}
+                        <span className="font-semibold text-slate-800">
+                          {source.customName || source.name}
+                        </span>
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <span className="text-xs text-slate-500">Ativo</span>
+                        <input
+                          type="checkbox"
+                          checked={source.enabled}
+                          onChange={() => handleToggleSalesSource(source.id)}
+                          className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                      </label>
+                    </div>
+
+                    {/* Configurações (quando ativo) */}
+                    {source.enabled && (
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-slate-700 mb-1">
+                            Sistema de Vendas
+                          </label>
+                          <select
+                            value={source.system}
+                            onChange={(e) => handleUpdateSalesSystem(source.id, e.target.value as any, source.apiKey, source.apiUrl)}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="bxd">🏠 BXD Event (Sistema Interno)</option>
+                            <option value="sympla">🎫 Sympla API</option>
+                            <option value="eventbrite">🎪 Eventbrite API</option>
+                            <option value="mercadopago">💳 MercadoPago</option>
+                            <option value="custom">⚙️ API Customizada</option>
+                          </select>
+                        </div>
+
+                        {/* Campos de API (somente para sistemas externos) */}
+                        {source.system !== 'bxd' && (
+                          <div className="space-y-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                            <div>
+                              <label className="block text-xs font-medium text-slate-700 mb-1">
+                                {source.system === 'custom' ? 'Token de Autenticação' : 'API Key'}
+                              </label>
+                              <input
+                                type="text"
+                                placeholder={`Digite a API Key do ${source.system === 'sympla' ? 'Sympla' : source.system === 'eventbrite' ? 'Eventbrite' : source.system === 'mercadopago' ? 'MercadoPago' : 'sistema'}`}
+                                value={source.apiKey || ''}
+                                onChange={(e) => handleUpdateSalesSystem(source.id, source.system, e.target.value, source.apiUrl)}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+                            
+                            {source.system === 'custom' && (
+                              <div>
+                                <label className="block text-xs font-medium text-slate-700 mb-1">
+                                  URL da API
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="https://api.exemplo.com/vendas"
+                                  value={source.apiUrl || ''}
+                                  onChange={(e) => handleUpdateSalesSystem(source.id, source.system, source.apiKey, e.target.value)}
+                                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                              </div>
+                            )}
+
+                            <div className="flex items-start gap-2 mt-2">
+                              <CreditCard className="w-4 h-4 text-slate-400 mt-0.5" />
+                              <p className="text-xs text-slate-600">
+                                {source.system === 'sympla' && 'Configure sua API key no painel do Sympla em Configurações > Integrações'}
+                                {source.system === 'eventbrite' && 'Crie um token de acesso em Account Settings > API Keys'}
+                                {source.system === 'mercadopago' && 'Obtenha suas credenciais em Seu perfil > Credenciais'}
+                                {source.system === 'custom' && 'Certifique-se de que sua API aceita requisições REST e retorna JSON'}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Botão Remover (somente para fontes customizadas) */}
+                    {source.type === 'outro' && (
+                      <button
+                        onClick={() => handleRemoveSalesSource(source.id)}
+                        className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Remover Fonte
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Botão Adicionar Fonte Customizada */}
+              <button
+                onClick={handleAddSalesSource}
+                className="w-full border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-blue-500 hover:bg-blue-50 transition-all group"
+              >
+                <Plus className="w-6 h-6 mx-auto mb-2 text-slate-400 group-hover:text-blue-600" />
+                <span className="text-sm font-medium text-slate-600 group-hover:text-blue-600">
+                  Adicionar Fonte de Receita Customizada
+                </span>
+                <p className="text-xs text-slate-500 mt-1">
+                  Ex: Food trucks, merchandise, estacionamento, etc.
+                </p>
+              </button>
+
+              {/* Info sobre integração */}
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex gap-3">
+                  <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-blue-800">
+                    <p className="font-semibold mb-1">Como funciona a integração?</p>
+                    <ul className="list-disc list-inside space-y-1 text-xs">
+                      <li>Com <strong>BXD Event</strong>, os dados são sincronizados automaticamente</li>
+                      <li>Com <strong>APIs externas</strong>, buscamos os dados de vendas periodicamente</li>
+                      <li>Todas as receitas aparecem no Dashboard e no Controle Financeiro</li>
+                      <li>Configure apenas as fontes que você realmente utiliza</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 

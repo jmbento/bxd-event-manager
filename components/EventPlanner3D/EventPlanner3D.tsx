@@ -1,60 +1,113 @@
 import React from 'react';
-import { Box, Download, AlertTriangle } from 'lucide-react';
+import { Box, Cuboid, Wrench } from 'lucide-react';
+import { PageBanner } from '../PageBanner';
 
 export const EventPlanner3D: React.FC = () => {
     return (
-        <div className="h-full flex flex-col bg-gray-50">
-            {/* Header com aviso */}
-            <div className="bg-amber-50 border-b border-amber-200 p-4">
-                <div className="flex items-center gap-3">
-                    <AlertTriangle className="w-6 h-6 text-amber-600" />
-                    <div>
-                        <h3 className="font-semibold text-amber-800">Módulo 3D Temporariamente Inativo</h3>
-                        <p className="text-sm text-amber-700">
-                            O EventPlanner3D está sendo preparado. Dependências Three.js em instalação.
-                        </p>
+        <div className="space-y-6">
+            <PageBanner pageKey="planner3d" />
+            
+            {/* Imagem de Em Desenvolvimento */}
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl border-2 border-dashed border-blue-300 p-12">
+                <div className="max-w-3xl mx-auto text-center">
+                    {/* Ícone Grande */}
+                    <div className="relative mb-6">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-32 h-32 bg-blue-200 rounded-full blur-3xl opacity-50"></div>
+                        </div>
+                        <div className="relative flex items-center justify-center gap-4">
+                            <Cuboid className="w-20 h-20 text-blue-500" />
+                            <Box className="w-16 h-16 text-purple-500" />
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            {/* Conteúdo principal */}
-            <div className="flex-1 flex items-center justify-center">
-                <div className="text-center max-w-md p-8">
-                    <Box className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                    <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                        Planejamento 3D em Desenvolvimento
+                    {/* Título */}
+                    <h2 className="text-4xl font-bold text-slate-900 mb-3">
+                        Planejador 3D
                     </h2>
-                    <p className="text-gray-600 mb-6">
-                        Esta funcionalidade permite criar layouts 3D completos com objetos, iluminação e materiais para eventos. 
-                        Estamos finalizando as integrações com Three.js e Gemini Vision AI.
-                    </p>
                     
-                    <div className="bg-white rounded-lg border p-4 mb-4">
-                        <h3 className="font-medium text-gray-800 mb-2">Recursos Planejados:</h3>
-                        <ul className="text-sm text-gray-600 space-y-1 text-left">
-                            <li>• Visualização 3D de layouts de evento</li>
-                            <li>• Biblioteca de objetos (tendas, palcos, equipamentos)</li>
-                            <li>• Análise de imagens com IA para layouts automáticos</li>
-                            <li>• Cálculo de materiais e orçamento</li>
-                            <li>• Exportação de renders e plantas</li>
-                        </ul>
+                    {/* Badge "Em Desenvolvimento" */}
+                    <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-800 px-6 py-3 rounded-full mb-6 border border-amber-300">
+                        <Wrench className="w-5 h-5" />
+                        <span className="font-semibold text-lg">Em Desenvolvimento</span>
                     </div>
 
-                    <div className="flex gap-2 justify-center">
-                        <button
-                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                            onClick={() => alert('Funcionalidade em desenvolvimento. Previsão: próxima versão.')}
-                        >
-                            <Download className="w-4 h-4 inline mr-2" />
-                            Instalar Dependências
-                        </button>
-                        <button
-                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                            onClick={() => window.history.back()}
-                        >
-                            Voltar ao Dashboard
-                        </button>
+                    {/* Descrição */}
+                    <p className="text-lg text-slate-600 mb-8 leading-relaxed">
+                        Estamos construindo uma experiência revolucionária de planejamento 3D para eventos.<br/>
+                        Em breve você poderá visualizar e organizar todo o seu evento em três dimensões.
+                    </p>
+
+                    {/* Features Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                        <div className="bg-white rounded-xl p-6 border border-slate-200 text-left">
+                            <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                <Box className="w-5 h-5 text-blue-600" />
+                                Biblioteca de Objetos 3D
+                            </h3>
+                            <p className="text-sm text-slate-600">
+                                Palcos, tendas, mobiliário, equipamentos de áudio e iluminação
+                            </p>
+                        </div>
+
+                        <div className="bg-white rounded-xl p-6 border border-slate-200 text-left">
+                            <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                <Cuboid className="w-5 h-5 text-purple-600" />
+                                Visualização Realista
+                            </h3>
+                            <p className="text-sm text-slate-600">
+                                Renders fotorrealistas com materiais, texturas e iluminação
+                            </p>
+                        </div>
+
+                        <div className="bg-white rounded-xl p-6 border border-slate-200 text-left">
+                            <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                <Box className="w-5 h-5 text-green-600" />
+                                IA para Layouts
+                            </h3>
+                            <p className="text-sm text-slate-600">
+                                Gemini Vision AI analisa fotos e cria layouts automáticos
+                            </p>
+                        </div>
+
+                        <div className="bg-white rounded-xl p-6 border border-slate-200 text-left">
+                            <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                <Cuboid className="w-5 h-5 text-orange-600" />
+                                Exportação Profissional
+                            </h3>
+                            <p className="text-sm text-slate-600">
+                                Plantas baixas, renders 360° e lista de materiais (BOM)
+                            </p>
+                        </div>
                     </div>
+
+                    {/* Tech Stack Info */}
+                    <div className="bg-slate-50 rounded-xl p-6 border border-slate-200">
+                        <p className="text-sm text-slate-500 mb-2">
+                            <strong className="text-slate-700">Tecnologias:</strong>
+                        </p>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                            <span className="px-3 py-1 bg-white rounded-lg text-xs font-medium text-slate-700 border border-slate-200">
+                                Three.js
+                            </span>
+                            <span className="px-3 py-1 bg-white rounded-lg text-xs font-medium text-slate-700 border border-slate-200">
+                                React Three Fiber
+                            </span>
+                            <span className="px-3 py-1 bg-white rounded-lg text-xs font-medium text-slate-700 border border-slate-200">
+                                Gemini Vision AI
+                            </span>
+                            <span className="px-3 py-1 bg-white rounded-lg text-xs font-medium text-slate-700 border border-slate-200">
+                                WebGL
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Nota */}
+                    <p className="text-xs text-slate-400 mt-6">
+                        💡 Este módulo será liberado em breve com todos os recursos listados acima
+                    </p>
+                </div>
+                    </p>
                 </div>
             </div>
         </div>

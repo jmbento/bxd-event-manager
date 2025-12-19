@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Users, Award, Trophy, Calendar, Plus, Star, TrendingUp, GraduationCap, X } from 'lucide-react';
+import { PageBanner } from './PageBanner';
 
 interface Volunteer {
   id: string;
@@ -46,6 +47,17 @@ export const VolunteersView: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <PageBanner 
+        title="Voluntários" 
+        subtitle="Gestão de voluntários"
+        storageKey="volunteers_banner_images"
+        defaultImages={[
+          'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1200&h=300&fit=crop'
+        ]}
+      />
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h2 className="text-2xl font-bold text-slate-800">Gestão de Voluntários</h2>
         <button 

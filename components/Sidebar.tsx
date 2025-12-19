@@ -39,12 +39,12 @@ const moduleCategories = [
     keys: ['agenda', 'staffManager', 'nfc', 'team', 'volunteers'],
   },
   {
-    name: 'Marketing',
-    keys: ['marketing', 'marketingAdvanced', 'polls'],
+    name: 'Materiais & Infra',
+    keys: ['marketing'],
   },
   {
     name: 'Planejamento',
-    keys: ['planner3d', 'analytics', 'ecogestao'],
+    keys: ['meetings', 'planning', 'planner3d', 'analytics', 'ecogestao'],
   },
   {
     name: 'Conformidade',

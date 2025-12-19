@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { importGenericSpreadsheet } from '../services/spreadsheetImportService';
 import { exportLeiIncentivoSpreadsheet } from '../services/leiIncentivoService';
+import { PageBanner } from './PageBanner';
 
 // ============ TIPOS E CONSTANTES ============
 
@@ -896,6 +897,8 @@ export const FinanceViewSimple: React.FC<Props> = ({ financials, recentTransacti
   const [filterType, setFilterType] = useState<'all' | 'entrada' | 'saida'>('all');
   const [filterTag, setFilterTag] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showSpreadsheet, setShowSpreadsheet] = useState(true);
+  const [spreadsheetFilter, setSpreadsheetFilter] = useState<'all' | 'entrada' | 'saida'>('all');
 
   const formatCurrency = (val: number) => 
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -999,6 +1002,17 @@ export const FinanceViewSimple: React.FC<Props> = ({ financials, recentTransacti
 
   return (
     <div className="space-y-6">
+      <PageBanner 
+        title="Financeiro" 
+        subtitle="Controle financeiro do evento"
+        storageKey="finance_banner_images"
+        defaultImages={[
+          'https://images.unsplash.com/photo-1554224311-beee460201c9?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=1200&h=300&fit=crop'
+        ]}
+      />
       {/* KPIs Resumo */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-2">
@@ -1048,6 +1062,151 @@ export const FinanceViewSimple: React.FC<Props> = ({ financials, recentTransacti
             />
           </div>
         </div>
+      </div>
+
+      {/* Planilha Scrollable de Transações */}
+      <div className="bg-white rounded-lg shadow">
+        <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h3 className="text-lg font-bold text-slate-900">Planilha de Transações</h3>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSpreadsheetFilter('all')}
+                className={`px-3 py-1 rounded text-sm font-medium transition ${
+                  spreadsheetFilter === 'all'
+                    ? 'bg-slate-700 text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                Todas
+              </button>
+              <button
+                onClick={() => setSpreadsheetFilter('entrada')}
+                className={`px-3 py-1 rounded text-sm font-medium transition ${
+                  spreadsheetFilter === 'entrada'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                }`}
+              >
+                Entradas
+              </button>
+              <button
+                onClick={() => setSpreadsheetFilter('saida')}
+                className={`px-3 py-1 rounded text-sm font-medium transition ${
+                  spreadsheetFilter === 'saida'
+                    ? 'bg-orange-600 text-white'
+                    : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                }`}
+              >
+                Saídas
+              </button>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowSpreadsheet(!showSpreadsheet)}
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+          >
+            {showSpreadsheet ? 'Ocultar' : 'Exibir'} Planilha
+          </button>
+        </div>
+
+        {showSpreadsheet && (
+          <div className="overflow-x-auto">
+            <div className="max-h-[600px] overflow-y-auto">
+              <table className="w-full">
+                <thead className="bg-slate-50 sticky top-0 z-10">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Data</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Descrição</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Categoria</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase">Valor</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase">Tags</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {transactions
+                    .filter(t => {
+                      if (spreadsheetFilter === 'entrada') return t.amount > 0;
+                      if (spreadsheetFilter === 'saida') return t.amount < 0;
+                      return true;
+                    })
+                    .map((transaction) => {
+                      const isEntrada = transaction.amount > 0;
+                      const rowBg = isEntrada ? 'bg-green-50' : 'bg-orange-50';
+                      const textColor = isEntrada ? 'text-green-900' : 'text-orange-900';
+                      
+                      return (
+                        <tr key={transaction.id} className={`${rowBg} hover:opacity-75 transition`}>
+                          <td className="px-4 py-3 text-sm text-slate-600">
+                            {new Date(transaction.date).toLocaleDateString('pt-BR')}
+                          </td>
+                          <td className="px-4 py-3 text-sm font-medium text-slate-900">
+                            {transaction.description}
+                            {transaction.subcategory && (
+                              <span className="block text-xs text-slate-500">{transaction.subcategory}</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-600">
+                            {CATEGORIES[transaction.transactionType]?.find(c => c.id === transaction.category)?.label || transaction.category}
+                          </td>
+                          <td className={`px-4 py-3 text-sm font-bold text-right ${textColor}`}>
+                            {formatCurrency(Math.abs(transaction.amount))}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-wrap gap-1 justify-center">
+                              {transaction.tags.map(tagId => {
+                                const tag = customTags.find(t => t.id === tagId);
+                                if (!tag) return null;
+                                const colors = getTagColorClasses(tag.color);
+                                return (
+                                  <span
+                                    key={tagId}
+                                    className={`text-xs px-2 py-0.5 rounded ${colors.bg} ${colors.text}`}
+                                  >
+                                    {tag.label}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => handleEditTransaction(transaction)}
+                                className="text-blue-600 hover:text-blue-800"
+                                title="Editar"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteTransaction(transaction.id)}
+                                className="text-red-600 hover:text-red-800"
+                                title="Excluir"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+              
+              {transactions.filter(t => {
+                if (spreadsheetFilter === 'entrada') return t.amount > 0;
+                if (spreadsheetFilter === 'saida') return t.amount < 0;
+                return true;
+              }).length === 0 && (
+                <div className="text-center py-12 text-slate-400">
+                  <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>Nenhuma transação encontrada</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Ações Rápidas */}

@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { FileText, CheckSquare, AlertCircle, Shield, Download, Plus, Calendar, X, Upload } from 'lucide-react';
+import { PageBanner } from './PageBanner';
 
 interface ComplianceItem {
   id: string;
@@ -59,6 +60,17 @@ export const ComplianceView: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <PageBanner 
+        title="Compliance" 
+        subtitle="Documentos e conformidade"
+        storageKey="compliance_banner_images"
+        defaultImages={[
+          'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1554224311-beee460201c9?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=1200&h=300&fit=crop'
+        ]}
+      />
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h2 className="text-2xl font-bold text-slate-800">Documentação & Compliance</h2>
         <button 

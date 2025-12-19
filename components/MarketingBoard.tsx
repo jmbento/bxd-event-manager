@@ -4,6 +4,7 @@ import {
   Instagram, Youtube, Facebook, Image, Play, Video,
   Calendar, Users, DollarSign, Target, Sparkles
 } from 'lucide-react';
+import { PageBanner } from './PageBanner';
 
 interface MarketingCard {
   id: string;
@@ -160,6 +161,17 @@ export const MarketingBoard: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <PageBanner 
+        title="Marketing" 
+        subtitle="Campanhas e estratégias de divulgação"
+        storageKey="marketing_banner_images"
+        defaultImages={[
+          'https://images.unsplash.com/photo-1533750349088-cd871a92f312?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?w=1200&h=300&fit=crop'
+        ]}
+      />
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

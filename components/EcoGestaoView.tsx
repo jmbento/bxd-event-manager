@@ -4,6 +4,7 @@ import {
   Trash2, Battery, Droplets, Wind, Sun, Calculator, 
   BarChart3, Award, CheckCircle2, Clock, Plus, Upload
 } from 'lucide-react';
+import { PageBanner } from './PageBanner';
 
 interface WasteContainer {
   id: string;
@@ -118,6 +119,17 @@ export const EcoGestaoView: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <PageBanner 
+        title="Ecogestão" 
+        subtitle="Sustentabilidade do evento"
+        storageKey="ecogestao_banner_images"
+        defaultImages={[
+          'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1446071103084-c257b5f70672?w=1200&h=300&fit=crop'
+        ]}
+      />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

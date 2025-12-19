@@ -33,15 +33,13 @@ type AppView = 'pricing' | 'auth' | 'app';
 // Lazy load dos módulos pesados - usando default export wrapper
 const FinanceViewSimple = lazy(() => import('./components/FinanceViewSimple').then(m => ({ default: m.FinanceViewSimple })));
 const CRMView = lazy(() => import('./components/CRMView').then(m => ({ default: m.CRMView })));
-const MarketingBoard = lazy(() => import('./components/MarketingBoard').then(m => ({ default: m.MarketingBoard })));
+const MaterialsInfraView = lazy(() => import('./components/MaterialsInfraView').then(m => ({ default: m.MaterialsInfraView })));
 const AgendaView = lazy(() => import('./components/AgendaView').then(m => ({ default: m.AgendaView })));
 const AnalyticsView = lazy(() => import('./components/AnalyticsView').then(m => ({ default: m.AnalyticsView })));
 const TeamView = lazy(() => import('./components/TeamViewComplete').then(m => ({ default: m.TeamViewComplete })));
 const EventPlanner3D = lazy(() => import('./components/EventPlanner3D').then(m => ({ default: m.EventPlanner3D })));
-const MarketingAdvancedView = lazy(() => import('./components/MarketingAdvancedView').then(m => ({ default: m.MarketingAdvancedView })));
 const AdvancedFinanceView = lazy(() => import('./components/AdvancedFinanceView').then(m => ({ default: m.AdvancedFinanceView })));
 const AccountingAdvisor = lazy(() => import('./components/AccountingAdvisor').then(m => ({ default: m.AccountingAdvisor })));
-const PollsView = lazy(() => import('./components/PollsView').then(m => ({ default: m.PollsView })));
 const VolunteersView = lazy(() => import('./components/VolunteersView').then(m => ({ default: m.VolunteersView })));
 const LegalAdvisor = lazy(() => import('./components/LegalAdvisor').then(m => ({ default: m.LegalAdvisor })));
 const ComplianceView = lazy(() => import('./components/ComplianceView').then(m => ({ default: m.ComplianceView })));
@@ -60,12 +58,15 @@ export default function App() {
   // Estado da aplicação (pricing -> auth -> app)
   const [appView, setAppView] = useState<AppView>(() => {
     try {
-      // Verificar se já está logado
+      // Verificar se já está logado de verdade
       const savedOrg = localStorage.getItem('bxd_organization');
       const savedUser = localStorage.getItem('bxd_user');
       const auditUser = localStorage.getItem('bxd_audit_current_user');
       if (savedOrg && savedUser && auditUser) return 'app';
-      return 'pricing';
+      
+      // 🚀 MODO DEMONSTRAÇÃO ATIVO: Entra direto no app para visualização
+      localStorage.setItem('bxd_demo_mode', 'true');
+      return 'app';
     } catch {
       return 'pricing';
     }
@@ -76,6 +77,18 @@ export default function App() {
   // Estado da organização
   const [organization, setOrganization] = useState<Organization | null>(() => {
     try {
+      // 🚀 MODO DEMO: Cria organização fake
+      if (localStorage.getItem('bxd_demo_mode') === 'true') {
+        return {
+          id: 'demo-org-id',
+          name: 'Organização Demo',
+          subscription_status: 'active',
+          subscription_plan: 'pro',
+          trial_ends_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+          max_events: 999,
+        };
+      }
+      
       const saved = localStorage.getItem('bxd_organization');
       return saved ? JSON.parse(saved) : null;
     } catch {
@@ -86,6 +99,9 @@ export default function App() {
   // Estado de autenticação - agora usando o serviço de auditoria
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     try {
+      // 🚀 MODO DEMO: Simula autenticação
+      if (localStorage.getItem('bxd_demo_mode') === 'true') return true;
+      
       const user = getCurrentUser();
       return user !== null && user.status === 'active';
     } catch {
@@ -95,6 +111,29 @@ export default function App() {
   
   const [systemUser, setSystemUser] = useState<SystemUser | null>(() => {
     try {
+      // 🚀 MODO DEMO: Cria usuário fake
+      if (localStorage.getItem('bxd_demo_mode') === 'true') {
+        return {
+          id: 'demo-user-id',
+          email: 'demo@bxdeventmanager.com',
+          name: 'Usuário Demo',
+          role: 'admin',
+          status: 'active',
+          permissions: {
+            modules: ['dashboard', 'settings', 'finance', 'agenda', 'staffManager', 'nfc',
+              'crm', 'marketing', 'analytics', 'team', 'planner3d', 'marketingAdvanced',
+              'advancedFinance', 'accounting', 'volunteers', 'legal', 'compliance',
+              'ecogestao', 'help', 'planning'] as ModuleKey[],
+            canInvite: true,
+            canExport: true,
+            canDelete: true,
+            canEditFinance: true,
+          },
+          createdAt: new Date().toISOString(),
+          lastActivity: new Date().toISOString(),
+        };
+      }
+      
       return getCurrentUser();
     } catch {
       return null;
@@ -162,7 +201,7 @@ export default function App() {
     const allModules: ModuleKey[] = [
       'dashboard', 'settings', 'finance', 'agenda', 'staffManager', 'nfc',
       'crm', 'marketing', 'analytics', 'team', 'planner3d', 'marketingAdvanced',
-      'advancedFinance', 'accounting', 'polls', 'volunteers', 'legal', 'compliance',
+      'advancedFinance', 'accounting', 'volunteers', 'legal', 'compliance',
       'ecogestao', 'help'
     ];
     
@@ -339,8 +378,8 @@ export default function App() {
       
       case 'marketing':
         return (
-          <Suspense fallback={<div className="p-8 text-center">Carregando Marketing...</div>}>
-            <MarketingBoard />
+          <Suspense fallback={<div className="p-8 text-center">Carregando Materiais & Infraestrutura...</div>}>
+            <MaterialsInfraView />
           </Suspense>
         );
       
@@ -397,13 +436,6 @@ export default function App() {
         return (
           <Suspense fallback={<div className="p-8 text-center">Carregando Contábil IA...</div>}>
             <AccountingAdvisor financials={financials} transactions={transactions} />
-          </Suspense>
-        );
-      
-      case 'polls':
-        return (
-          <Suspense fallback={<div className="p-8 text-center">Carregando Pesquisas...</div>}>
-            <PollsView />
           </Suspense>
         );
       

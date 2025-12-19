@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Users, Search, Filter, Plus, Phone, Mail, MapPin, MessageSquare, Download, X, Trash2, Edit3 } from 'lucide-react';
 import { exportToXLSX } from '../services/exportService';
 import { notifyError, notifyInfo, notifySuccess } from '../services/notificationService';
+import { PageBanner } from './PageBanner';
 
 interface Contact {
   id: string;
@@ -256,6 +257,17 @@ export const CRMView: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <PageBanner 
+        title="CRM" 
+        subtitle="Gestão de contatos e relacionamentos"
+        storageKey="crm_banner_images"
+        defaultImages={[
+          'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1543269865-cbf427effbad?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1200&h=300&fit=crop'
+        ]}
+      />
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h2 className="text-2xl font-bold text-slate-800">CRM - Gestão de Relacionamento</h2>
         <div className="flex gap-2">

@@ -6,6 +6,7 @@ import {
   LayoutDashboard, DollarSign, Map, Trello, BarChart3, Users, Vote,
   UserCircle2, Leaf, Scale, Calculator, HelpCircle, AlertCircle
 } from 'lucide-react';
+import { PageBanner } from './PageBanner';
 
 interface Props {
   team: TeamMember[];
@@ -531,6 +532,8 @@ export const TeamViewComplete: React.FC<Props> = ({ team }) => {
 
   return (
     <div className="space-y-6">
+      <PageBanner pageKey="team" />
+      
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
         <div>

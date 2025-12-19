@@ -6,6 +6,7 @@ import {
   Printer, Settings
 } from 'lucide-react';
 import { BadgePrinter } from './BadgePrinter';
+import { PageBanner } from './PageBanner';
 
 interface StaffMember {
   id: string;
@@ -412,6 +413,8 @@ export const StaffManagerView: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <PageBanner pageKey="staff" />
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

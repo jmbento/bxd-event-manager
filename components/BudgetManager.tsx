@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit3, Trash2, DollarSign, Target, AlertTriangle, CheckCircle, Clock, TrendingUp, Calculator } from 'lucide-react';
 import { BudgetItem, BudgetSummary } from '../types';
 import { budgetService, BUDGET_CATEGORIES, BUDGET_SUBCATEGORIES } from '../services/budgetService';
+import { PageBanner } from './PageBanner';
 
 export const BudgetManager: React.FC = () => {
   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
@@ -128,6 +129,8 @@ export const BudgetManager: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <PageBanner pageKey="budget" />
+      
       {/* Header com Resumo */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white">
         <div className="flex justify-between items-start mb-4">

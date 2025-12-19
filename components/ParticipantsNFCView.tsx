@@ -28,8 +28,12 @@ import {
   Save,
   Loader2,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Truck,
+  Car,
+  Package
 } from 'lucide-react';
+import { PageBanner } from './PageBanner';
 
 // =============================================================================
 // TIPOS
@@ -68,6 +72,21 @@ interface AccessLog {
   direction: 'in' | 'out';
   status: 'allowed' | 'denied';
   reason?: string;
+  created_at: string;
+}
+
+interface Vehicle {
+  id: string;
+  plate: string;
+  brand: string;
+  model: string;
+  color: string;
+  driver_name: string;
+  driver_phone?: string;
+  category: 'producao' | 'autoridades' | 'expositor' | 'carga-descarga' | 'outro';
+  custom_category?: string;
+  status: 'active' | 'expired' | 'blocked';
+  valid_until?: string;
   created_at: string;
 }
 
@@ -470,12 +489,25 @@ const ActivationModal: React.FC<ActivationModalProps> = ({ isOpen, onClose, onSu
 // =============================================================================
 
 export const ParticipantsNFCView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'participants' | 'wristbands' | 'access'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'participants' | 'wristbands' | 'access' | 'vehicles'>('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
   const [showActivationModal, setShowActivationModal] = useState(false);
+  const [showVehicleModal, setShowVehicleModal] = useState(false);
   const [stats, setStats] = useState<DashboardStats>(mockStats);
   const [attendees, setAttendees] = useState<Attendee[]>(mockAttendees);
   const [wristbands, setWristbands] = useState<Wristband[]>(mockWristbands);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [vehicleForm, setVehicleForm] = useState({
+    plate: '',
+    brand: '',
+    model: '',
+    color: '',
+    driver_name: '',
+    driver_phone: '',
+    category: 'producao' as Vehicle['category'],
+    custom_category: '',
+    valid_until: ''
+  });
   
   const formatCurrency = (cents: number) => 
     (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -512,10 +544,14 @@ export const ParticipantsNFCView: React.FC = () => {
     { id: 'participants', label: 'Participantes', icon: Users },
     { id: 'wristbands', label: 'Pulseiras', icon: CreditCard },
     { id: 'access', label: 'Controle de Acesso', icon: DoorOpen },
+    { id: 'vehicles', label: 'Veículos', icon: Truck },
   ];
   
   return (
     <div className="space-y-6">
+      {/* Banner */}
+      <PageBanner pageKey="credenciamento" />
+      
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -939,6 +975,536 @@ export const ParticipantsNFCView: React.FC = () => {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Vehicles Tab */}
+      {activeTab === 'vehicles' && (
+        <div className="space-y-6">
+          {/* Header with Add Button */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">Credenciamento de Veículos</h3>
+              <p className="text-sm text-slate-500 mt-1">Gerencie autorizações de entrada de veículos no evento</p>
+            </div>
+            <button
+              onClick={() => setShowVehicleModal(true)}
+              className="px-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              Adicionar Veículo
+            </button>
+          </div>
+
+          {/* Category Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {[
+              { category: 'producao', label: 'Produção', icon: Activity, count: vehicles.filter(v => v.category === 'producao').length },
+              { category: 'autoridades', label: 'Autoridades', icon: Shield, count: vehicles.filter(v => v.category === 'autoridades').length },
+              { category: 'expositor', label: 'Expositor', icon: Users, count: vehicles.filter(v => v.category === 'expositor').length },
+              { category: 'carga-descarga', label: 'Carga e Descarga', icon: Package, count: vehicles.filter(v => v.category === 'carga-descarga').length },
+              { category: 'outro', label: 'Outros', icon: Car, count: vehicles.filter(v => v.category === 'outro').length },
+            ].map((cat) => (
+              <div key={cat.category} className="bg-white rounded-lg border border-slate-200 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <cat.icon className="w-4 h-4 text-slate-400" />
+                  <span className="text-sm text-slate-600">{cat.label}</span>
+                </div>
+                <p className="text-2xl font-bold text-slate-900">{cat.count}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Vehicles List */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+            <div className="p-4 border-b border-slate-200">
+              <div className="flex items-center gap-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por placa, motorista, marca..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {vehicles.length === 0 ? (
+              <div className="p-12 text-center">
+                <Truck className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                <p className="text-slate-500 mb-1">Nenhum veículo credenciado</p>
+                <p className="text-sm text-slate-400">Clique em "Adicionar Veículo" para começar</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Placa</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Veículo</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Motorista</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Categoria</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Status</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Validade</th>
+                      <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {vehicles
+                      .filter(v => 
+                        v.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        v.driver_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        v.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        v.model.toLowerCase().includes(searchTerm.toLowerCase())
+                      )
+                      .map((vehicle) => (
+                      <tr key={vehicle.id} className="hover:bg-slate-50">
+                        <td className="py-3 px-4">
+                          <span className="font-mono font-semibold text-slate-900">{vehicle.plate}</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div>
+                            <p className="font-medium text-slate-900">{vehicle.brand} {vehicle.model}</p>
+                            <p className="text-sm text-slate-500">{vehicle.color}</p>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div>
+                            <p className="font-medium text-slate-900">{vehicle.driver_name}</p>
+                            {vehicle.driver_phone && (
+                              <p className="text-sm text-slate-500">{vehicle.driver_phone}</p>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            vehicle.category === 'producao' ? 'bg-blue-100 text-blue-700' :
+                            vehicle.category === 'autoridades' ? 'bg-purple-100 text-purple-700' :
+                            vehicle.category === 'expositor' ? 'bg-green-100 text-green-700' :
+                            vehicle.category === 'carga-descarga' ? 'bg-orange-100 text-orange-700' :
+                            'bg-slate-100 text-slate-700'
+                          }`}>
+                            {vehicle.category === 'outro' && vehicle.custom_category 
+                              ? vehicle.custom_category 
+                              : vehicle.category === 'producao' ? 'Produção' :
+                                vehicle.category === 'autoridades' ? 'Autoridades' :
+                                vehicle.category === 'expositor' ? 'Expositor' :
+                                vehicle.category === 'carga-descarga' ? 'Carga e Descarga' :
+                                'Outro'
+                            }
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            vehicle.status === 'active' ? 'bg-green-100 text-green-700' :
+                            vehicle.status === 'expired' ? 'bg-orange-100 text-orange-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {vehicle.status === 'active' ? 'Ativo' :
+                             vehicle.status === 'expired' ? 'Expirado' : 'Bloqueado'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-slate-600">
+                          {vehicle.valid_until ? new Date(vehicle.valid_until).toLocaleDateString('pt-BR') : 'Indeterminado'}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <button
+                            onClick={() => {
+                              if (confirm('Deseja bloquear este veículo?')) {
+                                setVehicles(vehicles.map(v => 
+                                  v.id === vehicle.id ? {...v, status: 'blocked'} : v
+                                ));
+                              }
+                            }}
+                            className="text-red-600 hover:text-red-700 text-sm font-medium"
+                          >
+                            Bloquear
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* Vehicles Tab */}
+      {activeTab === 'vehicles' && (
+        <div className="space-y-6">
+          {/* Header with Add Button */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">Credenciamento de Veículos</h3>
+              <p className="text-sm text-slate-500 mt-1">Gerencie autorizações de entrada de veículos no evento</p>
+            </div>
+            <button
+              onClick={() => setShowVehicleModal(true)}
+              className="px-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              Adicionar Veículo
+            </button>
+          </div>
+
+          {/* Category Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {[
+              { category: 'producao', label: 'Produção', icon: Activity, count: vehicles.filter(v => v.category === 'producao').length },
+              { category: 'autoridades', label: 'Autoridades', icon: Shield, count: vehicles.filter(v => v.category === 'autoridades').length },
+              { category: 'expositor', label: 'Expositor', icon: Users, count: vehicles.filter(v => v.category === 'expositor').length },
+              { category: 'carga-descarga', label: 'Carga e Descarga', icon: Package, count: vehicles.filter(v => v.category === 'carga-descarga').length },
+              { category: 'outro', label: 'Outros', icon: Car, count: vehicles.filter(v => v.category === 'outro').length },
+            ].map((cat) => (
+              <div key={cat.category} className="bg-white rounded-lg border border-slate-200 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <cat.icon className="w-4 h-4 text-slate-400" />
+                  <span className="text-sm text-slate-600">{cat.label}</span>
+                </div>
+                <p className="text-2xl font-bold text-slate-900">{cat.count}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Vehicles List */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+            <div className="p-4 border-b border-slate-200">
+              <div className="flex items-center gap-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por placa, motorista, marca..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {vehicles.length === 0 ? (
+              <div className="p-12 text-center">
+                <Truck className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                <p className="text-slate-500 mb-1">Nenhum veículo credenciado</p>
+                <p className="text-sm text-slate-400">Clique em "Adicionar Veículo" para começar</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Placa</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Veículo</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Motorista</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Categoria</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Status</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Validade</th>
+                      <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {vehicles
+                      .filter(v => 
+                        v.plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        v.driver_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        v.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        v.model.toLowerCase().includes(searchTerm.toLowerCase())
+                      )
+                      .map((vehicle) => (
+                      <tr key={vehicle.id} className="hover:bg-slate-50">
+                        <td className="py-3 px-4">
+                          <span className="font-mono font-semibold text-slate-900">{vehicle.plate}</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div>
+                            <p className="font-medium text-slate-900">{vehicle.brand} {vehicle.model}</p>
+                            <p className="text-sm text-slate-500">{vehicle.color}</p>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div>
+                            <p className="font-medium text-slate-900">{vehicle.driver_name}</p>
+                            {vehicle.driver_phone && (
+                              <p className="text-sm text-slate-500">{vehicle.driver_phone}</p>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            vehicle.category === 'producao' ? 'bg-blue-100 text-blue-700' :
+                            vehicle.category === 'autoridades' ? 'bg-purple-100 text-purple-700' :
+                            vehicle.category === 'expositor' ? 'bg-green-100 text-green-700' :
+                            vehicle.category === 'carga-descarga' ? 'bg-orange-100 text-orange-700' :
+                            'bg-slate-100 text-slate-700'
+                          }`}>
+                            {vehicle.category === 'outro' && vehicle.custom_category 
+                              ? vehicle.custom_category 
+                              : vehicle.category === 'producao' ? 'Produção' :
+                                vehicle.category === 'autoridades' ? 'Autoridades' :
+                                vehicle.category === 'expositor' ? 'Expositor' :
+                                vehicle.category === 'carga-descarga' ? 'Carga e Descarga' :
+                                'Outro'
+                            }
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            vehicle.status === 'active' ? 'bg-green-100 text-green-700' :
+                            vehicle.status === 'expired' ? 'bg-orange-100 text-orange-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {vehicle.status === 'active' ? 'Ativo' :
+                             vehicle.status === 'expired' ? 'Expirado' : 'Bloqueado'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-slate-600">
+                          {vehicle.valid_until ? new Date(vehicle.valid_until).toLocaleDateString('pt-BR') : 'Indeterminado'}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <button
+                            onClick={() => {
+                              if (confirm('Deseja bloquear este veículo?')) {
+                                setVehicles(vehicles.map(v => 
+                                  v.id === vehicle.id ? {...v, status: 'blocked'} : v
+                                ));
+                              }
+                            }}
+                            className="text-red-600 hover:text-red-700 text-sm font-medium"
+                          >
+                            Bloquear
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
+      {/* Vehicle Modal */}
+      {showVehicleModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-slate-200 p-6 flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">Credenciar Veículo</h3>
+                <p className="text-sm text-slate-500 mt-1">Preencha os dados do veículo e motorista</p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowVehicleModal(false);
+                  setVehicleForm({
+                    plate: '',
+                    brand: '',
+                    model: '',
+                    color: '',
+                    driver_name: '',
+                    driver_phone: '',
+                    category: 'producao',
+                    custom_category: '',
+                    valid_until: ''
+                  });
+                }}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const newVehicle: Vehicle = {
+                  id: 'v' + Date.now(),
+                  plate: vehicleForm.plate.toUpperCase(),
+                  brand: vehicleForm.brand,
+                  model: vehicleForm.model,
+                  color: vehicleForm.color,
+                  driver_name: vehicleForm.driver_name,
+                  driver_phone: vehicleForm.driver_phone,
+                  category: vehicleForm.category,
+                  custom_category: vehicleForm.category === 'outro' ? vehicleForm.custom_category : undefined,
+                  status: 'active',
+                  valid_until: vehicleForm.valid_until || undefined,
+                  created_at: new Date().toISOString()
+                };
+                setVehicles([newVehicle, ...vehicles]);
+                setShowVehicleModal(false);
+                setVehicleForm({
+                  plate: '',
+                  brand: '',
+                  model: '',
+                  color: '',
+                  driver_name: '',
+                  driver_phone: '',
+                  category: 'producao',
+                  custom_category: '',
+                  valid_until: ''
+                });
+              }}
+              className="p-6 space-y-6"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Placa *</label>
+                  <input
+                    type="text"
+                    required
+                    value={vehicleForm.plate}
+                    onChange={(e) => setVehicleForm({...vehicleForm, plate: e.target.value})}
+                    placeholder="ABC-1234"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono uppercase"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Categoria *</label>
+                  <select
+                    value={vehicleForm.category}
+                    onChange={(e) => setVehicleForm({...vehicleForm, category: e.target.value as Vehicle['category']})}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="producao">Produção</option>
+                    <option value="autoridades">Autoridades</option>
+                    <option value="expositor">Expositor</option>
+                    <option value="carga-descarga">Carga e Descarga</option>
+                    <option value="outro">Outro</option>
+                  </select>
+                </div>
+              </div>
+
+              {vehicleForm.category === 'outro' && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Especificar Categoria *</label>
+                  <input
+                    type="text"
+                    required
+                    value={vehicleForm.custom_category}
+                    onChange={(e) => setVehicleForm({...vehicleForm, custom_category: e.target.value})}
+                    placeholder="Ex: Imprensa, Fornecedor, etc."
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              )}
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Marca *</label>
+                  <input
+                    type="text"
+                    required
+                    value={vehicleForm.brand}
+                    onChange={(e) => setVehicleForm({...vehicleForm, brand: e.target.value})}
+                    placeholder="Ex: Toyota"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Modelo *</label>
+                  <input
+                    type="text"
+                    required
+                    value={vehicleForm.model}
+                    onChange={(e) => setVehicleForm({...vehicleForm, model: e.target.value})}
+                    placeholder="Ex: Corolla"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Cor *</label>
+                  <input
+                    type="text"
+                    required
+                    value={vehicleForm.color}
+                    onChange={(e) => setVehicleForm({...vehicleForm, color: e.target.value})}
+                    placeholder="Ex: Prata"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              
+              <div className="border-t border-slate-200 pt-6">
+                <h4 className="font-semibold text-slate-900 mb-4">Dados do Motorista</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Nome Completo *</label>
+                    <input
+                      type="text"
+                      required
+                      value={vehicleForm.driver_name}
+                      onChange={(e) => setVehicleForm({...vehicleForm, driver_name: e.target.value})}
+                      placeholder="Nome do motorista"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Telefone</label>
+                    <input
+                      type="tel"
+                      value={vehicleForm.driver_phone}
+                      onChange={(e) => setVehicleForm({...vehicleForm, driver_phone: e.target.value})}
+                      placeholder="(11) 99999-9999"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Validade do Credenciamento</label>
+                <input
+                  type="date"
+                  value={vehicleForm.valid_until}
+                  onChange={(e) => setVehicleForm({...vehicleForm, valid_until: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <p className="text-xs text-slate-500 mt-1">Deixe em branco para validade indeterminada</p>
+              </div>
+              
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowVehicleModal(false);
+                    setVehicleForm({
+                      plate: '',
+                      brand: '',
+                      model: '',
+                      color: '',
+                      driver_name: '',
+                      driver_phone: '',
+                      category: 'producao',
+                      custom_category: '',
+                      valid_until: ''
+                    });
+                  }}
+                  className="flex-1 px-4 py-2.5 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2"
+                >
+                  <Save className="w-5 h-5" />
+                  Cadastrar Veículo
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
