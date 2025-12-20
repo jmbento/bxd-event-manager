@@ -17,6 +17,8 @@ import {
   CreditCard,
   Gift
 } from 'lucide-react';
+import { VideoModal } from './VideoModal';
+import { VideoModal } from './VideoModal';
 
 // Definição dos planos
 const PLANS = [
@@ -180,6 +182,7 @@ interface PricingPageProps {
 
 export const PricingPage: React.FC<PricingPageProps> = ({ onStartTrial, onLogin }) => {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -259,7 +262,10 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onStartTrial, onLogin 
               Começar Trial Grátis
               <ArrowRight className="w-5 h-5" />
             </button>
-            <button className="w-full sm:w-auto px-8 py-4 border border-slate-600 text-white rounded-xl font-semibold text-lg hover:bg-slate-800 transition flex items-center justify-center gap-2">
+            <button 
+              onClick={() => setIsVideoModalOpen(true)}
+              className="w-full sm:w-auto px-8 py-4 border border-slate-600 text-white rounded-xl font-semibold text-lg hover:bg-slate-800 transition flex items-center justify-center gap-2"
+            >
               <Play className="w-5 h-5" />
               Ver Demo
             </button>
@@ -495,6 +501,14 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onStartTrial, onLogin 
           </div>
         </div>
       </footer>
+
+      {/* Modal de Vídeo Demo */}
+      <VideoModal 
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+        title="BXD Event Manager - Demonstração Completa"
+        // videoUrl="" // Adicione aqui a URL do YouTube quando tiver o vídeo pronto
+      />
     </div>
   );
 };
