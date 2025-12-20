@@ -206,6 +206,12 @@ export default function App() {
     const orgPlan = org?.subscription_plan || 'starter';
     const permissions = getDefaultPermissions('admin', orgPlan);
     
+    // Debug: Mostrar permissões no console
+    console.log('🔐 Sistema de Permissões:');
+    console.log('   Plano da Organização:', orgPlan);
+    console.log('   Módulos Disponíveis:', permissions.modules);
+    console.log('   Total de Módulos:', permissions.modules.length);
+    
     const systemUser: SystemUser = {
       id: user.id,
       email: user.email || user.user_metadata?.email,

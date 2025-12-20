@@ -86,7 +86,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=1200&h=300&fit=crop'
         ]}
       />
-      {/* Header com countdown */}
+      {/* Card de Boas-Vindas com Info de Trial/Plano */}
+      {organization && (
+        <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-6">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                {organization.subscription_status === 'trial' ? '🎉 Bem-vindo ao Trial!' : `✨ Plano ${organization.subscription_plan.toUpperCase()}`}
+              </h2>
+              <p className="text-slate-600 mb-4">
+                {organization.subscription_status === 'trial' 
+                  ? 'Explore todos os módulos disponíveis no seu período de teste.' 
+                  : 'Aproveite todos os recursos do seu plano.'}
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border border-blue-200">
+                  <Zap className="w-5 h-5 text-blue-600" />
+                  <span className="text-sm font-semibold text-slate-900">
+                    Plano: <span className="text-blue-600 uppercase">{organization.subscription_plan}</span>
+                  </span>
+                </div>
+                {organization.subscription_status === 'trial' && organization.trial_ends_at && (
+                  <div className="flex items-center gap-2 px-4 py-2 bg-amber-100 rounded-lg border border-amber-300">
+                    <Clock className="w-5 h-5 text-amber-700" />
+                    <span className="text-sm font-semibold text-amber-900">
+                      {Math.ceil((new Date(organization.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} dias restantes
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+            {/* Header com countdown */}
       <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex-1">
