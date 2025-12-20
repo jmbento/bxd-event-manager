@@ -570,6 +570,8 @@ export default function App() {
         )}
 
         {renderView()}
+      </main>
+      
       <Toaster position="top-right" />
       
       {/* Google Analytics */}
@@ -584,5 +586,3 @@ export default function App() {
     </div>
   );
 }
-
-export default App;

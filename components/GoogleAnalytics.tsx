@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
 
 // Substitua por seu ID do Google Analytics
 const GA_MEASUREMENT_ID = 'G-XXXXXXXXXX'; // Você vai criar isso no Google Analytics
@@ -12,8 +11,6 @@ declare global {
 }
 
 export const GoogleAnalytics = () => {
-  const location = useLocation();
-
   useEffect(() => {
     // Carrega o script do Google Analytics
     if (typeof window !== 'undefined' && !window.gtag) {
@@ -34,15 +31,6 @@ export const GoogleAnalytics = () => {
       document.head.appendChild(script2);
     }
   }, []);
-
-  // Rastreia mudanças de página
-  useEffect(() => {
-    if (typeof window.gtag !== 'undefined') {
-      window.gtag('config', GA_MEASUREMENT_ID, {
-        page_path: location.pathname + location.search,
-      });
-    }
-  }, [location]);
 
   return null;
 };
