@@ -37,9 +37,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   selectedPlan = 'starter'
 }) => {
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
+  const [useMagicLink, setUseMagicLink] = useState(true); // Magic link por padrão
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Form state
   const [email, setEmail] = useState('');
@@ -58,9 +60,40 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     setOrganizationName('Empresa Teste');
   };
 
+  const handleMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccessMessage(null);
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}`,
+        }
+      });
+
+      if (error) throw error;
+
+      setSuccessMessage(
+        `✅ Link de acesso enviado para ${email}!\n\n` +
+        `Verifique sua caixa de entrada (e spam) e clique no link para acessar.\n\n` +
+        `O link expira em 1 hora.`
+      );
+      setEmail('');
+    } catch (err: any) {
+      console.error('Magic link error:', err);
+      setError(err.message || 'Erro ao enviar email. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMessage(null);
     setLoading(true);
 
     try {
@@ -94,10 +127,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
         // Verificar se precisa confirmar email
         if (authData.user && !authData.session) {
-          setError('');
+          setSuccessMessage('✅ Conta criada com sucesso!\n\nVerifique seu email para confirmar o cadastro.');
           setLoading(false);
-          alert('✅ Conta criada com sucesso!\n\nVerifique seu email para confirmar o cadastro e fazer login.');
-          setIsLogin(true); // Volta para tela de login
+          setMode('login'); // Volta para tela de login
           return;
         }
 
@@ -326,6 +358,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             <div className="flex-1 h-px bg-slate-700" />
           </div>
 
+          {/* Success Message */}
+          {successMessage && (
+            <div className="mb-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl text-green-400 text-sm whitespace-pre-line">
+              {successMessage}
+            </div>
+          )}
+
           {/* Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
@@ -333,8 +372,77 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             </div>
           )}
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Toggle Magic Link / Password */}
+          {mode === 'login' && (
+            <div className="mb-6 flex items-center justify-center gap-4 p-3 bg-slate-800/50 rounded-xl border border-slate-700">
+              <button
+                type="button"
+                onClick={() => setUseMagicLink(true)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition ${
+                  useMagicLink 
+                    ? 'bg-blue-500 text-white' 
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Mail className="w-4 h-4" />
+                Link por Email
+              </button>
+              <button
+                type="button"
+                onClick={() => setUseMagicLink(false)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition ${
+                  !useMagicLink 
+                    ? 'bg-blue-500 text-white' 
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Lock className="w-4 h-4" />
+                Com Senha
+              </button>
+            </div>
+          )}
+
+          {/* Form para Magic Link */}
+          {mode === 'login' && useMagicLink ? (
+            <form onSubmit={handleMagicLink} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Email
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="seu@email.com"
+                    className="w-full pl-12 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition"
+                  />
+                </div>
+                <p className="text-slate-500 text-xs mt-2">
+                  Enviaremos um link seguro de acesso para seu email. Sem senha necessária! 🔒
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-bold text-base hover:opacity-90 hover:shadow-lg hover:shadow-purple-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Mail className="w-5 h-5" />
+                    Enviar Link de Acesso
+                  </>
+                )}
+              </button>
+            </form>
+          ) : (
+            /* Form com senha (register ou login com senha) */
+            <form onSubmit={handleSubmit} className="space-y-4">{
             {mode === 'register' && (
               <>
                 <div>
@@ -442,7 +550,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               </div>
             )}
 
-            {mode === 'login' && (
+            {mode === 'login' && !useMagicLink && (
               <div className="flex justify-end">
                 <button type="button" className="text-sm text-blue-400 hover:text-blue-300">
                   Esqueceu a senha?
@@ -493,8 +601,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 🧪 Preencher dados de teste
               </button>
             )}
-          </form>
-
+          </form>          )}
           {/* Toggle Mode */}
           <p className="mt-6 text-center text-slate-400">
             {mode === 'login' ? (
