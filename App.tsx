@@ -561,8 +561,8 @@ export default function App() {
         onUpgrade={handleUpgrade}
       />
       
-      {/* Main Content - com margin-left para compensar a sidebar */}
-      <main className="lg:ml-64 min-h-screen transition-all duration-300 p-4 lg:p-6">
+      {/* Main Content - com margin-left para desktop e padding-bottom para mobile */}
+      <main className="lg:ml-64 min-h-screen transition-all duration-300 p-4 lg:p-6 pb-24 lg:pb-6">
         {/* Banner de Trial */}
         {organization?.subscription_status === 'trial' && trialDaysRemaining > 0 && (
           <div className="mb-4 lg:mb-6">

@@ -5,7 +5,9 @@ import {
   LogOut, 
   Crown,
   Zap,
-  Lock
+  Lock,
+  Menu,
+  X
 } from 'lucide-react';
 import type { ModuleDefinition, ModuleKey, ModuleStateMap, EventProfile } from '../types';
 
@@ -67,6 +69,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onUpgrade,
 }) => {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const getModuleByKey = (key: string) => modules.find(m => m.key === key);
 
@@ -79,14 +82,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const planColor = planColors[organization?.subscription_plan as keyof typeof planColors] || planColors.starter;
 
   return (
-    <aside 
-      className={`
-        fixed left-0 top-0 h-screen bg-slate-900 text-white z-50 
-        transition-all duration-300 flex flex-col
-        lg:translate-x-0
-        ${collapsed ? 'w-16 -translate-x-full lg:translate-x-0' : 'w-64'}
-      `}
-    >
+    <>
+      {/* Mobile Menu Button - Fixed top */}
+      <button
+        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-slate-900 text-white rounded-xl shadow-lg hover:bg-slate-800 transition-colors"
+        aria-label="Abrir menu"
+      >
+        {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+      </button>
+
+      {/* Mobile Overlay */}
+      {mobileMenuOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar Desktop + Mobile Drawer */}
+      <aside 
+        className={`
+          fixed left-0 top-0 h-screen bg-slate-900 text-white z-50 
+          transition-all duration-300 flex flex-col
+          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          ${collapsed ? 'lg:w-16' : 'lg:w-64'}
+          w-64
+        `}
+      >
       {/* Header */}
       <div className={`p-4 border-b border-slate-800 ${collapsed ? 'px-2' : ''}`}>
         <div className="flex items-center justify-between">
@@ -136,7 +159,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   return (
                     <button
                       key={module.key}
-                      onClick={() => onNavigate(module.key)}
+                      onClick={() => {
+                        onNavigate(module.key);
+                        setMobileMenuOpen(false); // Fechar menu mobile ao clicar
+                      }}
                       disabled={!isEnabled}
                       title={collapsed ? module.label : undefined}
                       className={`
@@ -192,10 +218,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
 
-        {/* Collapse Button */}
+        {/* Collapse Button - Desktop only */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="w-full flex items-center justify-center gap-2 py-2 text-slate-400 hover:text-white transition-colors"
+          className="hidden lg:flex w-full items-center justify-center gap-2 py-2 text-slate-400 hover:text-white transition-colors"
           title={collapsed ? 'Expandir menu' : 'Recolher menu'}
         >
           {collapsed ? (
@@ -210,7 +236,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Logout */}
         <button
-          onClick={onLogout}
+          onClick={() => {
+            onLogout();
+            setMobileMenuOpen(false);
+          }}
           className={`
             w-full flex items-center gap-3 px-3 py-2.5 rounded-lg 
             text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all
@@ -223,5 +252,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
     </aside>
+
+    {/* Bottom Navigation - Mobile Only */}
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900 border-t border-slate-800 safe-area-inset-bottom">
+      <div className="flex items-center justify-around py-2 px-2">
+        {modules.slice(0, 5).map((module) => {
+          const Icon = module.icon;
+          const isActive = currentView === module.key;
+          const isEnabled = enabledModules[module.key];
+          
+          if (!isEnabled) return null;
+
+          return (
+            <button
+              key={module.key}
+              onClick={() => onNavigate(module.key)}
+              className={`
+                flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl transition-all min-w-[64px]
+                ${isActive 
+                  ? 'text-blue-500' 
+                  : 'text-slate-400 hover:text-white'
+                }
+              `}
+            >
+              <Icon className="w-5 h-5" />
+              <span className="text-[10px] font-medium truncate max-w-[60px]">
+                {module.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+    </>
   );
 };
