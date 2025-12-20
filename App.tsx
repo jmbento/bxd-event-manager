@@ -6,6 +6,7 @@ import { LoginView } from './components/LoginView';
 import { PricingPage } from './components/PricingPage';
 import { AuthPage } from './components/AuthPage';
 import { TrialBanner, TrialExpiredOverlay } from './components/TrialBanner';
+import { GoogleAnalytics } from './components/GoogleAnalytics';
 import { MODULE_DEFINITIONS, DEFAULT_ENABLED_MODULES } from './config/moduleConfig';
 import type { EventProfile, FinancialKPI, Transaction, ModuleKey, SystemUser } from './types';
 import { 
@@ -556,24 +557,23 @@ export default function App() {
       />
       
       {/* Main Content - com margin-left para compensar a sidebar */}
-      <main className="ml-64 min-h-screen transition-all duration-300">
-        <div className="p-6">
-          {/* Banner de Trial */}
-          {organization?.subscription_status === 'trial' && trialDaysRemaining > 0 && (
-            <div className="mb-6">
-              <TrialBanner 
+      <main className="lg:ml-64 min-h-screen transition-all duration-300 p-4 lg:p-6">
+        {/* Banner de Trial */}
+        {organization?.subscription_status === 'trial' && trialDaysRemaining > 0 && (
+          <div className="mb-4 lg:mb-6">
+            <TrialBanner 
                 daysRemaining={trialDaysRemaining}
                 planName={organization?.subscription_plan || 'Starter'}
                 onUpgrade={handleUpgrade}
               />
-            </div>
-          )}
+          </div>
+        )}
 
-          {renderView()}
-        </div>
-      </main>
-
+        {renderView()}
       <Toaster position="top-right" />
+      
+      {/* Google Analytics */}
+      <GoogleAnalytics />
       
       {/* Chatbot de Suporte */}
       {isAuthenticated && (
@@ -584,3 +584,5 @@ export default function App() {
     </div>
   );
 }
+
+export default App;

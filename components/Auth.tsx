@@ -85,7 +85,7 @@ export default function Auth({ onSuccess }: AuthProps) {
           </div>
 
           {/* OAuth Buttons */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
             <button
               type="button"
               onClick={() => handleOAuthLogin('google')}

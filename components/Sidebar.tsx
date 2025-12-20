@@ -83,7 +83,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       className={`
         fixed left-0 top-0 h-screen bg-slate-900 text-white z-50 
         transition-all duration-300 flex flex-col
-        ${collapsed ? 'w-16' : 'w-64'}
+        lg:translate-x-0
+        ${collapsed ? 'w-16 -translate-x-full lg:translate-x-0' : 'w-64'}
       `}
     >
       {/* Header */}
