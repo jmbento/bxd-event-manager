@@ -1,5 +1,6 @@
 import React, { useState, lazy, Suspense, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
+import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { DashboardView } from './components/DashboardView';
 import { LoginView } from './components/LoginView';
@@ -358,11 +359,24 @@ export default function App() {
     switch(currentView) {
       case 'dashboard':
         return (
-          <DashboardView 
-            profile={profile}
-            organization={organization}
-            daysLeft={daysLeft}
-          />
+          <>
+            <Header 
+              daysLeft={daysLeft}
+              currentView={currentView}
+              onNavigate={handleNavigate}
+              modules={MODULE_DEFINITIONS}
+              enabledModules={DEFAULT_ENABLED_MODULES}
+              onOpenModulePanel={() => {}}
+              profile={profile}
+              currentUser={systemUser}
+              organizationPlan={organization?.subscription_plan}
+            />
+            <DashboardView 
+              profile={profile}
+              organization={organization}
+              daysLeft={daysLeft}
+            />
+          </>
         );
       
       case 'finance':

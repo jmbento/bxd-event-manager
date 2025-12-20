@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Bell, CalendarClock, Lock, SquareStack, UserCircle, Settings } from 'lucide-react';
-import type { EventProfile, ModuleDefinition, ModuleKey, ModuleStateMap } from '../types';
+import { Bell, CalendarClock, Lock, SquareStack, UserCircle, Settings, Trash2 } from 'lucide-react';
+import type { EventProfile, ModuleDefinition, ModuleKey, ModuleStateMap, SystemUser } from '../types';
 
 interface HeaderProps {
   daysLeft: number;
@@ -11,6 +11,8 @@ interface HeaderProps {
   enabledModules: ModuleStateMap;
   onOpenModulePanel: () => void;
   profile: EventProfile;
+  currentUser?: SystemUser | null;
+  organizationPlan?: string;
 }
 export const Header: React.FC<HeaderProps> = React.memo(({
   daysLeft,
@@ -20,11 +22,30 @@ export const Header: React.FC<HeaderProps> = React.memo(({
   enabledModules,
   onOpenModulePanel,
   profile,
+  currentUser,
+  organizationPlan = 'starter',
 }) => {
   const navigationModules = React.useMemo(() => 
     modules.filter((module) => module.showInNavigation), 
     [modules]
   );
+
+  const planBadge = React.useMemo(() => {
+    const plan = organizationPlan?.toLowerCase();
+    if (plan === 'enterprise') return { label: 'ENTERPRISE', color: 'from-purple-500 to-purple-700' };
+    if (plan === 'pro') return { label: 'PRO', color: 'from-blue-500 to-blue-700' };
+    return { label: 'STARTER', color: 'from-slate-500 to-slate-700' };
+  }, [organizationPlan]);
+
+  const getUserInitials = (name?: string, email?: string) => {
+    if (name && name !== 'Usuário') {
+      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+    if (email) {
+      return email.slice(0, 2).toUpperCase();
+    }
+    return 'U';
+  };
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
@@ -75,6 +96,15 @@ export const Header: React.FC<HeaderProps> = React.memo(({
             <button
               type="button"
               className="p-2 text-slate-400 hover:text-slate-600 transition-colors relative"
+              aria-label="Lixeira"
+              title="Itens excluídos"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+
+            <button
+              type="button"
+              className="p-2 text-slate-400 hover:text-slate-600 transition-colors relative"
               aria-label="Abrir notificações"
             >
               <Bell className="w-6 h-6" />
@@ -100,6 +130,36 @@ export const Header: React.FC<HeaderProps> = React.memo(({
               title="Configurações do Evento"
             >
               <Settings className="w-6 h-6" aria-hidden="true" />
+            </button>
+
+            {/* Badge do Plano */}
+            <div className={`hidden lg:flex px-3 py-1.5 rounded-full bg-gradient-to-r ${planBadge.color} text-white text-xs font-bold tracking-wider shadow-lg`}>
+              {planBadge.label}
+            </div>
+
+            {/* Avatar do Usuário */}
+            <button
+              type="button"
+              onClick={() => onNavigate('settings')}
+              className="relative"
+              aria-label={`Perfil de ${currentUser?.name || 'usuário'}`}
+              title={currentUser?.email || 'Ver perfil'}
+            >
+              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-green-400 relative shadow-md hover:border-green-500 transition-colors">
+                {currentUser?.photoUrl ? (
+                  <img 
+                    src={currentUser.photoUrl} 
+                    alt={currentUser.name || 'Avatar'} 
+                    className="w-full h-full object-cover" 
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center text-white text-sm font-bold">
+                    {getUserInitials(currentUser?.name, currentUser?.email)}
+                  </div>
+                )}
+              </div>
+              {/* Status online */}
+              <span className="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-500 ring-2 ring-white"></span>
             </button>
           </div>
         </div>
