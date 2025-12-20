@@ -6,6 +6,64 @@
  */
 
 import type { AuditLog, AuditAction, ModuleKey, SystemUser, UserPermissions, UserRole, UserInvite, AccessSession } from '../types';
+import { MODULE_DEFINITIONS } from '../config/moduleConfig';
+
+// ============================================================
+// HELPERS FOR PERMISSIONS
+// ============================================================
+
+/**
+ * Retorna permissões padrão baseadas no role e plano da organização
+ */
+export function getDefaultPermissions(role: UserRole, organizationPlan: string = 'pro'): UserPermissions {
+  // Determinar quais módulos estão disponíveis no plano
+  const availableModules = MODULE_DEFINITIONS
+    .filter(mod => {
+      if (mod.plan === 'Starter') return true;
+      if (mod.plan === 'Growth' && (organizationPlan === 'pro' || organizationPlan === 'enterprise')) return true;
+      if (mod.plan === 'Pro' && organizationPlan === 'enterprise') return true;
+      return false;
+    })
+    .map(mod => mod.key);
+
+  // Permissões baseadas no role
+  if (role === 'admin') {
+    return {
+      modules: availableModules, // Admin tem acesso a tudo do plano
+      canInvite: true,
+      canExport: true,
+      canDelete: true,
+      canEditFinance: true,
+    };
+  } else if (role === 'manager') {
+    return {
+      modules: availableModules, // Manager tem acesso a tudo, mas algumas ações limitadas
+      canInvite: true,
+      canExport: true,
+      canDelete: false,
+      canEditFinance: true,
+    };
+  } else if (role === 'member') {
+    // Membro tem acesso apenas aos módulos básicos
+    return {
+      modules: availableModules.filter(mod =>
+        ['dashboard', 'agenda', 'staffManager', 'nfc', 'settings'].includes(mod)
+      ),
+      canInvite: false,
+      canExport: true,
+      canDelete: false,
+      canEditFinance: false,
+    };
+  } else { // viewer
+    return {
+      modules: ['dashboard'], // Viewer só vê o dashboard
+      canInvite: false,
+      canExport: false,
+      canDelete: false,
+      canEditFinance: false,
+    };
+  }
+}
 
 // ============================================================
 // STORAGE KEYS
@@ -145,13 +203,7 @@ function createDefaultAdmin(): SystemUser {
     name: 'Administrador',
     role: 'admin',
     status: 'active',
-    permissions: {
-      modules: ['dashboard', 'settings', 'finance', 'agenda', 'staffManager', 'crm', 'marketing', 'analytics', 'team', 'volunteers', 'polls', 'canvas', 'marketingAdvanced', 'advancedFinance', 'ecoGestao', 'legal', 'accounting', 'compliance', 'profile', 'help'],
-      canInvite: true,
-      canExport: true,
-      canDelete: true,
-      canEditFinance: true,
-    },
+    permissions: getDefaultPermissions('admin', 'enterprise'), // Admin padrão tem tudo
     createdAt: new Date().toISOString(),
     createdBy: 'system',
   };
@@ -262,7 +314,7 @@ export function createInvite(
   email: string,
   name: string,
   role: UserRole,
-  permissions: UserPermissions
+  permissions?: UserPermissions
 ): UserInvite | null {
   const currentUser = getCurrentUser();
   if (!currentUser || !currentUser.permissions.canInvite) return null;
@@ -278,13 +330,19 @@ export function createInvite(
   if (existingInvite) {
     throw new Error('Já existe um convite pendente para este e-mail');
   }
+
+  // Pegar organização do localStorage para determinar o plano
+  const organization = JSON.parse(localStorage.getItem('bxd_organization') || '{"subscription_plan":"pro"}');
+  
+  // Se não forneceu permissões, usar as padrões baseadas no role e plano
+  const finalPermissions = permissions || getDefaultPermissions(role, organization.subscription_plan);
   
   const invite: UserInvite = {
     id: generateId(),
     email,
     name,
     role,
-    permissions,
+    permissions: finalPermissions,
     token: generateToken(),
     createdAt: new Date().toISOString(),
     createdBy: currentUser.id,
