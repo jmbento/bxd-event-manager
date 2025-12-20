@@ -9,7 +9,13 @@ import {
   Zap,
   ArrowRight,
   Github,
-  Chrome
+  Chrome,
+  Shield,
+  Sparkles,
+  Users,
+  TrendingUp,
+  CheckCircle2,
+  BarChart3
 } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
@@ -190,8 +196,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex">
       {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-purple-700 p-12 flex-col justify-between">
-        <div>
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-purple-600 to-purple-700 p-12 flex-col justify-between relative overflow-hidden">
+        {/* Background decorativo */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-20 right-20 w-64 h-64 bg-white rounded-full blur-3xl" />
+          <div className="absolute bottom-20 left-20 w-64 h-64 bg-white rounded-full blur-3xl" />
+        </div>
+
+        <div className="relative z-10">
           <div className="flex items-center gap-3 mb-12">
             <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
               <Zap className="w-7 h-7 text-white" />
@@ -199,34 +211,62 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             <span className="text-2xl font-bold text-white">BXD Event Manager</span>
           </div>
 
-          <h1 className="text-4xl font-bold text-white mb-6 leading-tight">
-            Gerencie eventos<br />como um profissional
+          {/* Badge de confiança */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur rounded-full mb-8">
+            <Shield className="w-4 h-4 text-white" />
+            <span className="text-sm text-white font-medium">Plataforma Segura & Certificada</span>
+          </div>
+
+          <h1 className="text-5xl font-bold text-white mb-6 leading-tight">
+            Gerencie eventos<br />como um <span className="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">profissional</span>
           </h1>
 
-          <p className="text-white/80 text-lg max-w-md">
+          <p className="text-white/90 text-lg max-w-md mb-8">
             Dashboard financeiro, equipe, pulseiras NFC, planejador 3D e IA. 
-            Tudo em uma única plataforma.
+            Tudo em uma única plataforma moderna.
           </p>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-4 mb-12">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-white mb-1">10k+</div>
+              <div className="text-white/70 text-sm">Eventos</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-white mb-1">50k+</div>
+              <div className="text-white/70 text-sm">Usuários</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-white mb-1">99.9%</div>
+              <div className="text-white/70 text-sm">Uptime</div>
+            </div>
+          </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 text-white/80">
+        <div className="space-y-4 relative z-10">
+          <div className="flex items-center gap-3 text-white">
             <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-              ✓
+              <CheckCircle2 className="w-5 h-5" />
             </div>
-            <span>15 dias de trial grátis</span>
+            <span className="font-medium">15 dias de trial grátis</span>
           </div>
-          <div className="flex items-center gap-3 text-white/80">
+          <div className="flex items-center gap-3 text-white">
             <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-              ✓
+              <CheckCircle2 className="w-5 h-5" />
             </div>
-            <span>Sem cartão de crédito</span>
+            <span className="font-medium">Sem cartão de crédito</span>
           </div>
-          <div className="flex items-center gap-3 text-white/80">
+          <div className="flex items-center gap-3 text-white">
             <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-              ✓
+              <CheckCircle2 className="w-5 h-5" />
             </div>
-            <span>Cancele quando quiser</span>
+            <span className="font-medium">Cancele quando quiser</span>
+          </div>
+          <div className="flex items-center gap-3 text-white">
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <span className="font-medium">Suporte prioritário 24/7</span>
           </div>
         </div>
       </div>
@@ -244,13 +284,19 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
           {/* Header */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-white mb-2">
-              {mode === 'login' ? 'Bem-vindo de volta!' : 'Crie sua conta'}
+            {mode === 'register' && (
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-500/20 text-green-400 rounded-full text-xs font-medium mb-4">
+                <Sparkles className="w-3.5 h-3.5" />
+                15 dias grátis • Sem cartão
+              </div>
+            )}
+            <h2 className="text-3xl font-bold text-white mb-3">
+              {mode === 'login' ? 'Bem-vindo de volta! 👋' : 'Comece grátis agora'}
             </h2>
-            <p className="text-slate-400">
+            <p className="text-slate-400 text-base">
               {mode === 'login' 
-                ? 'Entre para acessar seu dashboard' 
-                : `Comece com 15 dias grátis no plano ${selectedPlan}`}
+                ? 'Acesse seu dashboard de gestão de eventos' 
+                : 'Crie sua conta em 30 segundos e transforme seus eventos'}
             </p>
           </div>
 
@@ -407,20 +453,38 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-semibold hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-bold text-base hover:opacity-90 hover:shadow-lg hover:shadow-purple-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  {mode === 'login' ? 'Entrar' : 'Criar conta grátis'}
+                  {mode === 'login' ? 'Acessar Dashboard' : 'Começar Grátis Agora'}
                   <ArrowRight className="w-5 h-5" />
                 </>
               )}
             </button>
 
-            {/* Botão de teste - remover em produção */}
+            {/* Features badges */}
             {mode === 'register' && (
+              <div className="flex items-center justify-center gap-4 mt-4 text-xs text-slate-400">
+                <div className="flex items-center gap-1">
+                  <Users className="w-4 h-4" />
+                  <span>3 membros</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <BarChart3 className="w-4 h-4" />
+                  <span>1 evento</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <TrendingUp className="w-4 h-4" />
+                  <span>Todos módulos</span>
+                </div>
+              </div>
+            )}
+
+            {/* Botão de teste - remover em produção */}
+            {mode === 'register' && process.env.NODE_ENV === 'development' && (
               <button
                 type="button"
                 onClick={fillTestData}

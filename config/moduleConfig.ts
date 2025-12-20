@@ -1,4 +1,4 @@
-import { LayoutDashboard, BarChart3, UserCircle2, Map, Trello, Sparkles, DollarSign, Calculator, Vote, UserPlus, Users, Truck, Scale, Shield, Settings as SettingsIcon, UserCircle, SquareStack, Leaf, HelpCircle, Mic, Video } from 'lucide-react';
+import { LayoutDashboard, BarChart3, UserCircle2, Map, Trello, Sparkles, DollarSign, Calculator, Vote, UserPlus, Users, Truck, Scale, Shield, Settings as SettingsIcon, UserCircle, SquareStack, Leaf, HelpCircle, Mic, Video, Server } from 'lucide-react';
 import type { ModuleDefinition, ModuleKey, ModulePlan, ModuleStateMap } from '../types';
 
 const moduleDefinitions: ModuleDefinition[] = [
@@ -285,6 +285,18 @@ const moduleDefinitions: ModuleDefinition[] = [
     plan: 'Starter',
     defaultEnabled: true,
     showInNavigation: false,
+    gateable: false,
+  },
+  
+  // Painel SaaS - Controle de vendas e APIs
+  {
+    key: 'saas',
+    label: 'Painel SaaS',
+    description: 'Controle de vendas, clientes, APIs e integrações do negócio.',
+    icon: Server,
+    plan: 'Growth',
+    defaultEnabled: true,
+    showInNavigation: true,
     gateable: false,
   },
   

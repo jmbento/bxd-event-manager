@@ -12,7 +12,11 @@ import {
   Settings,
   Wifi,
   WifiOff,
+  Smartphone,
+  Shield,
+  Save,
 } from 'lucide-react';
+import { PageBanner } from '../PageBanner';
 
 // Subcomponentes
 import { NFCDashboard } from './NFCDashboard';
@@ -35,68 +39,32 @@ import type {
 } from './types';
 
 // =============================================================================
-// MOCK DATA - Será substituído por chamadas à API
+// DADOS INICIAIS (vazios - serão preenchidos pela integração)
 // =============================================================================
 
-const mockStats: DashboardStats = {
-  total_participants: 2847,
-  wristbands_assigned: 2650,
-  current_inside: 1856,
-  total_entries: 4521,
-  staff_count: 145,
-  staff_present: 122,
-  meals_served_today: 486,
-  meals_remaining: 314,
+const initialStats: DashboardStats = {
+  total_participants: 0,
+  wristbands_assigned: 0,
+  current_inside: 0,
+  total_entries: 0,
+  staff_count: 0,
+  staff_present: 0,
+  meals_served_today: 0,
+  meals_remaining: 0,
 };
 
-const mockGates: Gate[] = [
-  { id: 'g1', name: 'Entrada Principal', code: 'GATE_MAIN', zone: 'main', type: 'entry', entries_today: 1520, exits_today: 680, current_inside: 840, is_active: true },
-  { id: 'g2', name: 'Entrada VIP', code: 'GATE_VIP', zone: 'vip', type: 'entry', entries_today: 245, exits_today: 89, current_inside: 156, is_active: true },
-  { id: 'g3', name: 'Backstage', code: 'GATE_BACKSTAGE', zone: 'backstage', type: 'bidirectional', entries_today: 145, exits_today: 112, current_inside: 33, is_active: true },
-  { id: 'g4', name: 'Saída Principal', code: 'GATE_EXIT', zone: 'main', type: 'exit', entries_today: 0, exits_today: 720, current_inside: 0, is_active: true },
-];
-
-const mockMealStations: MealStation[] = [
-  { id: 'm1', name: 'Refeitório Principal', code: 'MEAL_MAIN', meal_types: ['breakfast', 'lunch', 'dinner'], is_active: true, served_today: 320, capacity_per_hour: 200 },
-  { id: 'm2', name: 'Área VIP', code: 'MEAL_VIP', meal_types: ['lunch', 'snack'], is_active: true, served_today: 86, capacity_per_hour: 50 },
-  { id: 'm3', name: 'Backstage', code: 'MEAL_BACKSTAGE', meal_types: ['lunch', 'dinner', 'snack'], is_active: true, served_today: 80, capacity_per_hour: 80 },
-];
-
-const mockStaff: StaffMember[] = [
-  { id: 's1', full_name: 'Carlos Silva', email: 'carlos@evento.com', phone: '11999001122', ticket_type: 'staff', department: 'Produção', role: 'Coordenador', marketing_opt_in: false, created_at: '2025-12-01', shift_start: '08:00', shift_end: '18:00', is_checked_in: true, check_in_time: '07:45', meals_allowed: 3, meals_consumed: 2 },
-  { id: 's2', full_name: 'Ana Santos', email: 'ana@evento.com', phone: '11999002233', ticket_type: 'staff', department: 'Segurança', role: 'Supervisora', marketing_opt_in: false, created_at: '2025-12-01', shift_start: '06:00', shift_end: '14:00', is_checked_in: true, check_in_time: '05:55', meals_allowed: 3, meals_consumed: 1 },
-  { id: 's3', full_name: 'Pedro Costa', email: 'pedro@evento.com', phone: '11999003344', ticket_type: 'crew', department: 'Técnico', role: 'Roadie', marketing_opt_in: false, created_at: '2025-12-01', shift_start: '14:00', shift_end: '22:00', is_checked_in: false, meals_allowed: 3, meals_consumed: 0 },
-  { id: 's4', full_name: 'Julia Mendes', email: 'julia@evento.com', phone: '11999004455', ticket_type: 'staff', department: 'Alimentação', role: 'Chefe', marketing_opt_in: false, created_at: '2025-12-01', shift_start: '05:00', shift_end: '15:00', is_checked_in: true, check_in_time: '04:50', meals_allowed: 3, meals_consumed: 3 },
-  { id: 's5', full_name: 'Roberto Alves', email: 'roberto@evento.com', phone: '11999005566', ticket_type: 'staff', department: 'Limpeza', role: 'Supervisor', marketing_opt_in: false, created_at: '2025-12-01', shift_start: '06:00', shift_end: '18:00', is_checked_in: true, check_in_time: '06:02', meals_allowed: 3, meals_consumed: 2 },
-];
-
-const mockMealLogs: MealLog[] = [
-  { id: 'ml1', wristband_id: 'w1', attendee_name: 'Carlos Silva', meal_type: 'lunch', station: 'Refeitório Principal', created_at: '2025-12-10T12:30:00Z', status: 'allowed' },
-  { id: 'ml2', wristband_id: 'w2', attendee_name: 'Ana Santos', meal_type: 'breakfast', station: 'Refeitório Principal', created_at: '2025-12-10T07:15:00Z', status: 'allowed' },
-  { id: 'ml3', wristband_id: 'w3', attendee_name: 'João Visitante', meal_type: 'lunch', station: 'Refeitório Principal', created_at: '2025-12-10T12:45:00Z', status: 'denied', reason: 'Sem permissão de refeição' },
-  { id: 'ml4', wristband_id: 'w4', attendee_name: 'Julia Mendes', meal_type: 'dinner', station: 'Backstage', created_at: '2025-12-10T19:00:00Z', status: 'denied', reason: 'Limite diário atingido' },
-];
-
-const mockAccessLogs: AccessLog[] = [
-  { id: 'al1', wristband_id: 'w1', wristband_uid: 'NFC001ABC', attendee_name: 'João Silva', gate: 'Entrada Principal', zone: 'main', direction: 'in', status: 'allowed', created_at: '2025-12-10T10:45:23Z' },
-  { id: 'al2', wristband_id: 'w2', wristband_uid: 'NFC002DEF', attendee_name: 'Maria Santos', gate: 'Entrada VIP', zone: 'vip', direction: 'in', status: 'allowed', created_at: '2025-12-10T10:44:15Z' },
-  { id: 'al3', wristband_id: 'w5', wristband_uid: 'NFC005MNO', attendee_name: 'Desconhecido', gate: 'Backstage', zone: 'backstage', direction: 'in', status: 'denied', reason: 'Sem permissão para esta área', created_at: '2025-12-10T10:43:58Z' },
-  { id: 'al4', wristband_id: 'w3', wristband_uid: 'NFC003GHI', attendee_name: 'Pedro Costa', gate: 'Saída Principal', zone: 'main', direction: 'out', status: 'allowed', created_at: '2025-12-10T10:42:30Z' },
-];
-
-const mockAttendees: Attendee[] = [
-  { id: '1', full_name: 'João Silva', email: 'joao@email.com', phone: '11999998888', cpf: '123.456.789-00', age: 28, city: 'São Paulo', state: 'SP', ticket_type: 'vip', marketing_opt_in: true, created_at: '2025-12-10T10:00:00Z' },
-  { id: '2', full_name: 'Maria Santos', email: 'maria@email.com', phone: '11988887777', age: 32, city: 'Rio de Janeiro', state: 'RJ', ticket_type: 'standard', marketing_opt_in: true, created_at: '2025-12-10T10:15:00Z' },
-  { id: '3', full_name: 'Pedro Costa', email: 'pedro@email.com', phone: '21977776666', age: 25, city: 'Belo Horizonte', state: 'MG', ticket_type: 'standard', marketing_opt_in: false, created_at: '2025-12-10T10:30:00Z' },
-  { id: '4', full_name: 'Ana Lima', email: 'ana@email.com', phone: '11966665555', age: 29, city: 'Curitiba', state: 'PR', ticket_type: 'vip', marketing_opt_in: true, created_at: '2025-12-10T10:45:00Z' },
-  { id: '5', full_name: 'Lucas Oliveira', email: 'lucas@email.com', phone: '21955554444', age: 35, city: 'Salvador', state: 'BA', ticket_type: 'backstage', marketing_opt_in: false, created_at: '2025-12-10T11:00:00Z' },
-];
+const initialGates: Gate[] = [];
+const initialMealStations: MealStation[] = [];
+const initialStaff: StaffMember[] = [];
+const initialMealLogs: MealLog[] = [];
+const initialAccessLogs: AccessLog[] = [];
+const initialAttendees: Attendee[] = [];
 
 // =============================================================================
 // COMPONENTE PRINCIPAL
 // =============================================================================
 
-type TabType = 'dashboard' | 'staff' | 'meals' | 'access' | 'leads';
+type TabType = 'dashboard' | 'staff' | 'meals' | 'access' | 'leads' | 'config';
 
 export const NFCManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -104,14 +72,26 @@ export const NFCManager: React.FC = () => {
   const [isOnline, setIsOnline] = useState(true);
   const [lastSync, setLastSync] = useState(new Date());
   
-  // States - serão substituídos por queries do backend
-  const [stats, setStats] = useState<DashboardStats>(mockStats);
-  const [gates, setGates] = useState<Gate[]>(mockGates);
-  const [mealStations, setMealStations] = useState<MealStation[]>(mockMealStations);
-  const [staff, setStaff] = useState<StaffMember[]>(mockStaff);
-  const [mealLogs, setMealLogs] = useState<MealLog[]>(mockMealLogs);
-  const [accessLogs, setAccessLogs] = useState<AccessLog[]>(mockAccessLogs);
-  const [attendees, setAttendees] = useState<Attendee[]>(mockAttendees);
+  // States - iniciam vazios, serão preenchidos pela integração
+  const [stats, setStats] = useState<DashboardStats>(initialStats);
+  const [gates, setGates] = useState<Gate[]>(initialGates);
+  const [mealStations, setMealStations] = useState<MealStation[]>(initialMealStations);
+  const [staff, setStaff] = useState<StaffMember[]>(initialStaff);
+  const [mealLogs, setMealLogs] = useState<MealLog[]>(initialMealLogs);
+  const [accessLogs, setAccessLogs] = useState<AccessLog[]>(initialAccessLogs);
+  const [attendees, setAttendees] = useState<Attendee[]>(initialAttendees);
+  
+  // Configurações de integração
+  const [nfcConfig, setNfcConfig] = useState(() => {
+    const saved = localStorage.getItem('nfc_manager_config');
+    return saved ? JSON.parse(saved) : {
+      deviceType: 'celular' as 'celular' | 'leitor-usb' | 'leitor-bluetooth' | 'qrcode',
+      apiUrl: '',
+      apiKey: '',
+      paymentGateway: 'none' as 'none' | 'mercadopago' | 'pagseguro' | 'stripe',
+      paymentApiKey: ''
+    };
+  });
   
   // Simular sync em tempo real
   useEffect(() => {
@@ -285,10 +265,24 @@ export const NFCManager: React.FC = () => {
     { id: 'meals' as const, label: 'Alimentação', icon: Utensils },
     { id: 'access' as const, label: 'Acesso', icon: DoorOpen },
     { id: 'leads' as const, label: 'Leads', icon: Download },
+    { id: 'config' as const, label: 'Configurações', icon: Settings },
   ];
   
   return (
     <div className="space-y-6">
+      {/* Banner */}
+      <PageBanner 
+        title="Sistema NFC de Pulseiras"
+        subtitle="Controle de acesso, cashless e coleta de leads"
+        storageKey="nfc_manager_banner_images"
+        defaultImages={[
+          'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?w=1200&h=300&fit=crop',
+        ]}
+      />
+      
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
@@ -402,6 +396,170 @@ export const NFCManager: React.FC = () => {
             attendees={attendees}
             onExport={handleExportLeads}
           />
+        )}
+        
+        {activeTab === 'config' && (
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 className="text-lg font-bold text-slate-900 mb-6">Configurações de Integração</h3>
+            
+            <div className="space-y-6">
+              {/* Tipo de Dispositivo */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-3">
+                  Dispositivo de Leitura NFC/QR Code
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { value: 'celular', label: 'Celular/Tablet', desc: 'Leitura via NFC do smartphone', icon: Smartphone },
+                    { value: 'leitor-usb', label: 'Leitor USB', desc: 'Dispositivo conectado via USB', icon: CreditCard },
+                    { value: 'leitor-bluetooth', label: 'Leitor Bluetooth', desc: 'Dispositivo pareado via Bluetooth', icon: Activity },
+                    { value: 'qrcode', label: 'QR Code', desc: 'Leitura de QR Code pela câmera', icon: QrCode },
+                  ].map((device) => (
+                    <label
+                      key={device.value}
+                      className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
+                        nfcConfig.deviceType === device.value
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="deviceType"
+                        value={device.value}
+                        checked={nfcConfig.deviceType === device.value}
+                        onChange={(e) => setNfcConfig({ ...nfcConfig, deviceType: e.target.value as any })}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <device.icon className="w-4 h-4 text-blue-600" />
+                          <span className="font-semibold text-slate-900">{device.label}</span>
+                        </div>
+                        <p className="text-sm text-slate-500">{device.desc}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* API Configuration */}
+              <div className="pt-6 border-t border-slate-200">
+                <h4 className="font-semibold text-slate-900 mb-4">API de Integração Externa (Opcional)</h4>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      URL da API
+                    </label>
+                    <input
+                      type="url"
+                      value={nfcConfig.apiUrl}
+                      onChange={(e) => setNfcConfig({ ...nfcConfig, apiUrl: e.target.value })}
+                      placeholder="https://api.exemplo.com/nfc"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">Caso utilize um sistema externo de credenciamento</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      API Key / Token
+                    </label>
+                    <input
+                      type="password"
+                      value={nfcConfig.apiKey}
+                      onChange={(e) => setNfcConfig({ ...nfcConfig, apiKey: e.target.value })}
+                      placeholder="••••••••••••••••"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Gateway */}
+              <div className="pt-6 border-t border-slate-200">
+                <h4 className="font-semibold text-slate-900 mb-4">Gateway de Pagamento (Cashless)</h4>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Selecione o Gateway
+                    </label>
+                    <select
+                      value={nfcConfig.paymentGateway}
+                      onChange={(e) => setNfcConfig({ ...nfcConfig, paymentGateway: e.target.value as any })}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="none">Nenhum (Sem Cashless)</option>
+                      <option value="mercadopago">MercadoPago</option>
+                      <option value="pagseguro">PagSeguro</option>
+                      <option value="stripe">Stripe</option>
+                    </select>
+                  </div>
+
+                  {nfcConfig.paymentGateway !== 'none' && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">
+                        API Key do Gateway
+                      </label>
+                      <input
+                        type="password"
+                        value={nfcConfig.paymentApiKey}
+                        onChange={(e) => setNfcConfig({ ...nfcConfig, paymentApiKey: e.target.value })}
+                        placeholder="••••••••••••••••"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">
+                        {nfcConfig.paymentGateway === 'mercadopago' && 'Obtenha em: Mercado Pago > Credenciais'}
+                        {nfcConfig.paymentGateway === 'pagseguro' && 'Obtenha em: PagSeguro > Integrações'}
+                        {nfcConfig.paymentGateway === 'stripe' && 'Obtenha em: Stripe Dashboard > API Keys'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Instruções */}
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex gap-3">
+                  <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-blue-900">
+                    <p className="font-semibold mb-2">Instruções de Uso:</p>
+                    <ul className="list-disc list-inside space-y-1 text-blue-800">
+                      <li>Escolha o tipo de dispositivo que será usado no evento</li>
+                      <li>Configure a API externa apenas se já possuir um sistema de credenciamento</li>
+                      <li>O Gateway de Pagamento é necessário apenas para eventos com sistema Cashless</li>
+                      <li>Todas as configurações são salvas automaticamente</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Botões de Ação */}
+              <div className="flex gap-3 pt-6 border-t border-slate-200">
+                <button
+                  onClick={() => {
+                    localStorage.setItem('nfc_manager_config', JSON.stringify(nfcConfig));
+                    alert('Configurações salvas com sucesso!');
+                  }}
+                  className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition flex items-center gap-2"
+                >
+                  <Save className="w-5 h-5" />
+                  Salvar Configurações
+                </button>
+                
+                <button
+                  onClick={() => {
+                    if (confirm('Deseja testar a conexão com as configurações atuais?')) {
+                      alert('Teste de conexão - Em desenvolvimento');
+                    }
+                  }}
+                  className="px-6 py-2.5 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition"
+                >
+                  Testar Conexão
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
       

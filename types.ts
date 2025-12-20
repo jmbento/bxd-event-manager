@@ -242,6 +242,7 @@ export type ModuleKey =
   | 'settings'
   | 'profile'
   | 'canvas'
+  | 'saas'
   | 'help';
 
 export interface ModuleDefinition {

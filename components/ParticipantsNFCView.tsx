@@ -98,28 +98,18 @@ interface DashboardStats {
 }
 
 // =============================================================================
-// MOCK DATA (será substituído por chamadas à API)
+// DADOS INICIAIS (vazios - serão preenchidos pela integração)
 // =============================================================================
 
-const mockStats: DashboardStats = {
-  total_participants: 1247,
-  wristbands_assigned: 1180,
-  current_inside: 856,
-  total_entries: 2341
+const initialStats: DashboardStats = {
+  total_participants: 0,
+  wristbands_assigned: 0,
+  current_inside: 0,
+  total_entries: 0
 };
 
-const mockAttendees: Attendee[] = [
-  { id: '1', full_name: 'João Silva', email: 'joao@email.com', phone: '11999998888', cpf: '123.456.789-00', age: 28, city: 'São Paulo', state: 'SP', ticket_type: 'vip', marketing_opt_in: true, created_at: '2025-12-10T10:00:00Z' },
-  { id: '2', full_name: 'Maria Santos', email: 'maria@email.com', phone: '11988887777', age: 32, city: 'Rio de Janeiro', state: 'RJ', ticket_type: 'standard', marketing_opt_in: true, created_at: '2025-12-10T10:15:00Z' },
-  { id: '3', full_name: 'Pedro Costa', email: 'pedro@email.com', phone: '21977776666', age: 25, city: 'Belo Horizonte', state: 'MG', ticket_type: 'standard', marketing_opt_in: false, created_at: '2025-12-10T10:30:00Z' },
-];
-
-const mockWristbands: Wristband[] = [
-  { id: 'w1', uid: 'NFC001ABC', status: 'assigned', attendee_id: '1', attendee: mockAttendees[0], account: { id: 'acc1', balance_cents: 15000 } },
-  { id: 'w2', uid: 'NFC002DEF', status: 'assigned', attendee_id: '2', attendee: mockAttendees[1], account: { id: 'acc2', balance_cents: 5000 } },
-  { id: 'w3', uid: 'NFC003GHI', status: 'new', account: { id: 'acc3', balance_cents: 0 } },
-  { id: 'w4', uid: 'NFC004JKL', status: 'blocked', attendee_id: '3', attendee: mockAttendees[2], account: { id: 'acc4', balance_cents: 2500 } },
-];
+const initialAttendees: Attendee[] = [];
+const initialWristbands: Wristband[] = [];
 
 // =============================================================================
 // COMPONENTES AUXILIARES
@@ -489,14 +479,25 @@ const ActivationModal: React.FC<ActivationModalProps> = ({ isOpen, onClose, onSu
 // =============================================================================
 
 export const ParticipantsNFCView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'participants' | 'wristbands' | 'access' | 'vehicles'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'participants' | 'wristbands' | 'access' | 'vehicles' | 'config'>('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
   const [showActivationModal, setShowActivationModal] = useState(false);
   const [showVehicleModal, setShowVehicleModal] = useState(false);
-  const [stats, setStats] = useState<DashboardStats>(mockStats);
-  const [attendees, setAttendees] = useState<Attendee[]>(mockAttendees);
-  const [wristbands, setWristbands] = useState<Wristband[]>(mockWristbands);
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [stats, setStats] = useState<DashboardStats>(initialStats);
+  const [attendees, setAttendees] = useState<Attendee[]>(initialAttendees);
+  const [wristbands, setWristbands] = useState<Wristband[]>(initialWristbands);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  
+  // Configurações de integração
+  const [nfcConfig, setNfcConfig] = useState({
+    deviceType: 'celular' as 'celular' | 'leitor-usb' | 'leitor-bluetooth' | 'qrcode',
+    apiUrl: '',
+    apiKey: '',
+    paymentGateway: 'none' as 'none' | 'mercadopago' | 'pagseguro' | 'stripe',
+    paymentApiKey: ''
+  });
+  
   const [vehicleForm, setVehicleForm] = useState({
     plate: '',
     brand: '',
@@ -545,12 +546,23 @@ export const ParticipantsNFCView: React.FC = () => {
     { id: 'wristbands', label: 'Pulseiras', icon: CreditCard },
     { id: 'access', label: 'Controle de Acesso', icon: DoorOpen },
     { id: 'vehicles', label: 'Veículos', icon: Truck },
+    { id: 'config', label: 'Configurações', icon: Shield },
   ];
   
   return (
     <div className="space-y-6">
       {/* Banner */}
-      <PageBanner pageKey="credenciamento" />
+      <PageBanner 
+        title="Credenciamento & NFC"
+        subtitle="Controle de acesso, cashless e coleta de leads"
+        storageKey="nfc_banner_images"
+        defaultImages={[
+          'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=300&fit=crop',
+          'https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?w=1200&h=300&fit=crop',
+        ]}
+      />
       
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -1505,6 +1517,171 @@ export const ParticipantsNFCView: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      
+      {/* Configurações Tab */}
+      {activeTab === 'config' && (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <h3 className="text-lg font-bold text-slate-900 mb-6">Configurações de Integração</h3>
+          
+          <div className="space-y-6">
+            {/* Tipo de Dispositivo */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-3">
+                Dispositivo de Leitura NFC/QR Code
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { value: 'celular', label: 'Celular/Tablet', desc: 'Leitura via NFC do smartphone', icon: Smartphone },
+                  { value: 'leitor-usb', label: 'Leitor USB', desc: 'Dispositivo conectado via USB', icon: CreditCard },
+                  { value: 'leitor-bluetooth', label: 'Leitor Bluetooth', desc: 'Dispositivo pareado via Bluetooth', icon: Activity },
+                  { value: 'qrcode', label: 'QR Code', desc: 'Leitura de QR Code pela câmera', icon: QrCode },
+                ].map((device) => (
+                  <label
+                    key={device.value}
+                    className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
+                      nfcConfig.deviceType === device.value
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="deviceType"
+                      value={device.value}
+                      checked={nfcConfig.deviceType === device.value}
+                      onChange={(e) => setNfcConfig({ ...nfcConfig, deviceType: e.target.value as any })}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <device.icon className="w-4 h-4 text-blue-600" />
+                        <span className="font-semibold text-slate-900">{device.label}</span>
+                      </div>
+                      <p className="text-sm text-slate-500">{device.desc}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* API Configuration */}
+            <div className="pt-6 border-t border-slate-200">
+              <h4 className="font-semibold text-slate-900 mb-4">API de Integração Externa (Opcional)</h4>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    URL da API
+                  </label>
+                  <input
+                    type="url"
+                    value={nfcConfig.apiUrl}
+                    onChange={(e) => setNfcConfig({ ...nfcConfig, apiUrl: e.target.value })}
+                    placeholder="https://api.exemplo.com/nfc"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">Caso utilize um sistema externo de credenciamento</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    API Key / Token
+                  </label>
+                  <input
+                    type="password"
+                    value={nfcConfig.apiKey}
+                    onChange={(e) => setNfcConfig({ ...nfcConfig, apiKey: e.target.value })}
+                    placeholder="••••••••••••••••"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Gateway */}
+            <div className="pt-6 border-t border-slate-200">
+              <h4 className="font-semibold text-slate-900 mb-4">Gateway de Pagamento (Cashless)</h4>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Selecione o Gateway
+                  </label>
+                  <select
+                    value={nfcConfig.paymentGateway}
+                    onChange={(e) => setNfcConfig({ ...nfcConfig, paymentGateway: e.target.value as any })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="none">Nenhum (Sem Cashless)</option>
+                    <option value="mercadopago">MercadoPago</option>
+                    <option value="pagseguro">PagSeguro</option>
+                    <option value="stripe">Stripe</option>
+                  </select>
+                </div>
+
+                {nfcConfig.paymentGateway !== 'none' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      API Key do Gateway
+                    </label>
+                    <input
+                      type="password"
+                      value={nfcConfig.paymentApiKey}
+                      onChange={(e) => setNfcConfig({ ...nfcConfig, paymentApiKey: e.target.value })}
+                      placeholder="••••••••••••••••"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">
+                      {nfcConfig.paymentGateway === 'mercadopago' && 'Obtenha em: Mercado Pago > Credenciais'}
+                      {nfcConfig.paymentGateway === 'pagseguro' && 'Obtenha em: PagSeguro > Integrações'}
+                      {nfcConfig.paymentGateway === 'stripe' && 'Obtenha em: Stripe Dashboard > API Keys'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Instruções */}
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex gap-3">
+                <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-900">
+                  <p className="font-semibold mb-2">Instruções de Uso:</p>
+                  <ul className="list-disc list-inside space-y-1 text-blue-800">
+                    <li>Escolha o tipo de dispositivo que será usado no evento</li>
+                    <li>Configure a API externa apenas se já possuir um sistema de credenciamento</li>
+                    <li>O Gateway de Pagamento é necessário apenas para eventos com sistema Cashless</li>
+                    <li>Todas as configurações são salvas automaticamente</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Botões de Ação */}
+            <div className="flex gap-3 pt-6 border-t border-slate-200">
+              <button
+                onClick={() => {
+                  localStorage.setItem('nfc_config', JSON.stringify(nfcConfig));
+                  alert('Configurações salvas com sucesso!');
+                }}
+                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition flex items-center gap-2"
+              >
+                <Save className="w-5 h-5" />
+                Salvar Configurações
+              </button>
+              
+              <button
+                onClick={() => {
+                  if (confirm('Deseja testar a conexão com as configurações atuais?')) {
+                    alert('Teste de conexão - Em desenvolvimento');
+                  }
+                }}
+                className="px-6 py-2.5 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition"
+              >
+                Testar Conexão
+              </button>
+            </div>
           </div>
         </div>
       )}

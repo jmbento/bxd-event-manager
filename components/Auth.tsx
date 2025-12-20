@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../services/supabaseClient';
-import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Github, Chrome } from 'lucide-react';
 
 interface AuthProps {
   onSuccess: () => void;
@@ -44,6 +44,25 @@ export default function Auth({ onSuccess }: AuthProps) {
     }
   }
 
+  async function handleOAuthLogin(provider: 'google' | 'github') {
+    setLoading(true);
+    setMessage('');
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      setMessage('Erro ao fazer login: ' + (error as Error).message);
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900 flex items-center justify-center p-6">
       <div className="max-w-md w-full">
@@ -63,6 +82,34 @@ export default function Auth({ onSuccess }: AuthProps) {
             <p className="text-gray-600 mt-2">
               {isLogin ? 'Acesse seu dashboard de eventos' : 'Comece a gerenciar seus eventos'}
             </p>
+          </div>
+
+          {/* OAuth Buttons */}
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <button
+              type="button"
+              onClick={() => handleOAuthLogin('google')}
+              disabled={loading}
+              className="flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Chrome className="w-5 h-5 text-blue-600" />
+              Google
+            </button>
+            <button
+              type="button"
+              onClick={() => handleOAuthLogin('github')}
+              disabled={loading}
+              className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Github className="w-5 h-5" />
+              GitHub
+            </button>
+          </div>
+
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex-1 h-px bg-gray-300" />
+            <span className="text-gray-500 text-sm">ou com email</span>
+            <div className="flex-1 h-px bg-gray-300" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">

@@ -51,6 +51,8 @@ const EventProfileView = lazy(() => import('./components/EventProfileView').then
 const HelpView = lazy(() => import('./components/HelpView').then(m => ({ default: m.HelpView })));
 const NFCManager = lazy(() => import('./components/NFCModule').then(m => ({ default: m.NFCManager })));
 const PlanningView = lazy(() => import('./components/PlanningView').then(m => ({ default: m.PlanningView })));
+const SaaSControlPanel = lazy(() => import('./components/SaaSControlPanel').then(m => ({ default: m.default })));
+const SupportChatbot = lazy(() => import('./components/SupportChatbot').then(m => ({ default: m.SupportChatbot })));
 
 export default function App() {
   // TODOS os useState DEVEM vir ANTES de qualquer return condicional!
@@ -510,6 +512,13 @@ export default function App() {
           </Suspense>
         );
       
+      case 'saas':
+        return (
+          <Suspense fallback={<div className="p-8 text-center">Carregando Painel SaaS...</div>}>
+            <SaaSControlPanel />
+          </Suspense>
+        );
+      
       default:
         return (
           <div className="bg-white rounded-lg shadow p-8">
@@ -565,6 +574,13 @@ export default function App() {
       </main>
 
       <Toaster position="top-right" />
+      
+      {/* Chatbot de Suporte */}
+      {isAuthenticated && (
+        <Suspense fallback={null}>
+          <SupportChatbot companyName="BXD Event Manager" />
+        </Suspense>
+      )}
     </div>
   );
 }
