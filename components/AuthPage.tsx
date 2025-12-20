@@ -442,7 +442,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             </form>
           ) : (
             /* Form com senha (register ou login com senha) */
-            <form onSubmit={handleSubmit} className="space-y-4">{
+            <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'register' && (
               <>
                 <div>
