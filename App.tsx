@@ -67,11 +67,15 @@ export default function App() {
       const savedOrg = localStorage.getItem('bxd_organization');
       const savedUser = localStorage.getItem('bxd_user');
       const auditUser = localStorage.getItem('bxd_audit_current_user');
-      if (savedOrg && savedUser && auditUser) return 'app';
       
-      // 🚀 MODO DEMONSTRAÇÃO ATIVO: Entra direto no app para visualização
-      localStorage.setItem('bxd_demo_mode', 'true');
-      return 'app';
+      if (savedOrg && savedUser && auditUser) {
+        console.log('✅ Usuário autenticado encontrado, carregando app...');
+        return 'app';
+      }
+      
+      // Se não está logado, vai para pricing
+      console.log('👤 Nenhum usuário autenticado, redirecionando para pricing...');
+      return 'pricing';
     } catch {
       return 'pricing';
     }
@@ -82,21 +86,20 @@ export default function App() {
   // Estado da organização
   const [organization, setOrganization] = useState<Organization | null>(() => {
     try {
-      // 🚀 MODO DEMO: Cria organização fake
-      if (localStorage.getItem('bxd_demo_mode') === 'true') {
-        return {
-          id: 'demo-org-id',
-          name: 'Organização Demo',
-          subscription_status: 'active',
-          subscription_plan: 'pro',
-          trial_ends_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-          max_events: 999,
-        };
-      }
-      
       const saved = localStorage.getItem('bxd_organization');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
+      const org = saved ? JSON.parse(saved) : null;
+      if (org) {
+        console.log('🏢 Organização carregada:', { 
+          name: org.name, 
+          plan: org.subscription_plan,
+          status: org.subscription_status 
+        });
+      } else {
+        console.log('❌ Nenhuma organização encontrada no localStorage');
+      }
+      return org;
+    } catch (error) {
+      console.error('❌ Erro ao carregar organização:', error);
       return null;
     }
   });
@@ -104,43 +107,31 @@ export default function App() {
   // Estado de autenticação - agora usando o serviço de auditoria
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     try {
-      // 🚀 MODO DEMO: Simula autenticação
-      if (localStorage.getItem('bxd_demo_mode') === 'true') return true;
-      
       const user = getCurrentUser();
-      return user !== null && user.status === 'active';
-    } catch {
+      const isAuth = user !== null && user.status === 'active';
+      console.log('🔐 Verificando autenticação:', isAuth ? '✅ Autenticado' : '❌ Não autenticado');
+      return isAuth;
+    } catch (error) {
+      console.error('❌ Erro ao verificar autenticação:', error);
       return false;
     }
   });
   
   const [systemUser, setSystemUser] = useState<SystemUser | null>(() => {
     try {
-      // 🚀 MODO DEMO: Cria usuário fake
-      if (localStorage.getItem('bxd_demo_mode') === 'true') {
-        return {
-          id: 'demo-user-id',
-          email: 'demo@bxdeventmanager.com',
-          name: 'Usuário Demo',
-          role: 'admin',
-          status: 'active',
-          permissions: {
-            modules: ['dashboard', 'settings', 'finance', 'agenda', 'staffManager', 'nfc',
-              'crm', 'marketing', 'analytics', 'team', 'planner3d', 'marketingAdvanced',
-              'advancedFinance', 'accounting', 'volunteers', 'legal', 'compliance',
-              'ecogestao', 'help', 'planning'] as ModuleKey[],
-            canInvite: true,
-            canExport: true,
-            canDelete: true,
-            canEditFinance: true,
-          },
-          createdAt: new Date().toISOString(),
-          lastActivity: new Date().toISOString(),
-        };
+      const user = getCurrentUser();
+      if (user) {
+        console.log('👤 Usuário carregado:', { 
+          email: user.email, 
+          role: user.role,
+          plan: user.permissions?.modules?.length ? `${user.permissions.modules.length} módulos` : '0 módulos'
+        });
+      } else {
+        console.log('❌ Nenhum usuário encontrado no localStorage');
       }
-      
-      return getCurrentUser();
-    } catch {
+      return user;
+    } catch (error) {
+      console.error('❌ Erro ao carregar usuário:', error);
       return null;
     }
   });
