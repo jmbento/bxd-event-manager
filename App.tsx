@@ -17,7 +17,8 @@ import {
   setCurrentUser as setAuditUser,
   canAccessModule,
   logModuleAccess,
-  getUsers
+  getUsers,
+  getDefaultPermissions
 } from './services/auditService';
 
 // Tipos para o sistema de assinatura
@@ -201,27 +202,17 @@ export default function App() {
     localStorage.setItem('bxd_user', JSON.stringify(user));
     localStorage.setItem('bxd_organization', JSON.stringify(org));
     
-    // Criar SystemUser com permissões completas para o owner
-    const allModules: ModuleKey[] = [
-      'dashboard', 'settings', 'finance', 'agenda', 'staffManager', 'nfc',
-      'crm', 'marketing', 'analytics', 'team', 'planner3d', 'marketingAdvanced',
-      'advancedFinance', 'accounting', 'volunteers', 'legal', 'compliance',
-      'ecogestao', 'help'
-    ];
+    // IMPORTANTE: Owner sempre é admin e tem permissões baseadas no plano da organização
+    const orgPlan = org?.subscription_plan || 'starter';
+    const permissions = getDefaultPermissions('admin', orgPlan);
     
     const systemUser: SystemUser = {
       id: user.id,
-      email: user.email,
+      email: user.email || user.user_metadata?.email,
       name: user.user_metadata?.name || user.email?.split('@')[0] || 'Usuário',
       role: 'admin',
       status: 'active',
-      permissions: {
-        modules: allModules,
-        canInvite: true,
-        canExport: true,
-        canDelete: true,
-        canEditFinance: true,
-      },
+      permissions: permissions,
       createdAt: new Date().toISOString(),
       lastActivity: new Date().toISOString(),
     };

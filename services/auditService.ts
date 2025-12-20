@@ -15,13 +15,30 @@ import { MODULE_DEFINITIONS } from '../config/moduleConfig';
 /**
  * Retorna permissões padrão baseadas no role e plano da organização
  */
-export function getDefaultPermissions(role: UserRole, organizationPlan: string = 'pro'): UserPermissions {
+export function getDefaultPermissions(role: UserRole, organizationPlan: string = 'starter'): UserPermissions {
+  // Normalizar nome do plano
+  const planLower = organizationPlan.toLowerCase();
+  
   // Determinar quais módulos estão disponíveis no plano
   const availableModules = MODULE_DEFINITIONS
     .filter(mod => {
-      if (mod.plan === 'Starter') return true;
-      if (mod.plan === 'Growth' && (organizationPlan === 'pro' || organizationPlan === 'enterprise')) return true;
-      if (mod.plan === 'Pro' && organizationPlan === 'enterprise') return true;
+      const modPlan = mod.plan.toLowerCase();
+      
+      // Starter plan: apenas módulos Starter
+      if (planLower === 'starter') {
+        return modPlan === 'starter';
+      }
+      
+      // Pro/Growth plan: Starter + Growth
+      if (planLower === 'pro' || planLower === 'growth') {
+        return modPlan === 'starter' || modPlan === 'growth';
+      }
+      
+      // Enterprise/Scale plan: todos os módulos
+      if (planLower === 'enterprise' || planLower === 'scale') {
+        return true;
+      }
+      
       return false;
     })
     .map(mod => mod.key);

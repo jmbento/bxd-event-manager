@@ -147,7 +147,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               slug: `${slug}-${Date.now()}`,
               owner_id: authData.user.id,
               subscription_status: 'trial',
-              subscription_plan: 'starter',
+              subscription_plan: 'pro', // Trial com plano PRO para os testadores terem acesso a mais módulos
               trial_starts_at: new Date().toISOString(),
               trial_ends_at: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
               max_events: 1,
