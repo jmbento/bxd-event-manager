@@ -17,13 +17,7 @@ import {
   CheckCircle2,
   BarChart3
 } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
-
-// Configurações fixas (não depende de env vars do Vercel)
-const supabaseUrl = 'https://hzgzobcjdgddtrfzbywg.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6Z3pvYmNqZGdkZHRyZnpieXdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MzgxNDIsImV4cCI6MjA4MDQxNDE0Mn0.wopx2seFG3w4-noREXf6TYuLRkMOZmsNK75-cXwmWk8';
-const apiUrl = 'https://bxd-event-manager-production.up.railway.app';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from '../config/supabase';
 
 interface AuthPageProps {
   onSuccess: (user: any, organization: any) => void;
